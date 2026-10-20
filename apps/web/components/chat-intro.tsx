@@ -4,7 +4,7 @@ import { cn } from 'cn';
 import { ChatSuggestions } from '@/components/chat-suggestions';
 
 export const INTRO_TITLE = 'Ask the harness about the demo company.';
-export const INTRO_BODY =
+const INTRO_BODY =
   'It can check balances, find contracts close to expiring, explain why a payment would fail, and work out what a fix costs. It shows its work and does not move any money in this demo.';
 
 export interface ChatIntroProps {

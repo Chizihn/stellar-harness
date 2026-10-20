@@ -43,7 +43,7 @@ function ToolCallBody({ part }: { part: ToolCallPart }) {
   );
 }
 
-export function ToolCall({ part }: { part: ToolCallPart }) {
+function ToolCall({ part }: { part: ToolCallPart }) {
   return (
     <Tool defaultOpen className="mb-0 rounded-none border-none bg-transparent">
       <ToolHeader

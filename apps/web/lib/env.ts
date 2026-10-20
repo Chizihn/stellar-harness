@@ -23,7 +23,7 @@ const loadRootEnv = memo(() => {
   if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 });
 
-export const getServerEnv = memo(() => {
+const getServerEnv = memo(() => {
   loadRootEnv();
   return defineEnv(serverShape);
 });
