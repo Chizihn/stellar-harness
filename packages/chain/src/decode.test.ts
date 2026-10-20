@@ -23,6 +23,7 @@ describe('failureCode on real mainnet results', () => {
       'invoke_host_function_trapped',
       'invoke_host_function_resource_limit_exceeded',
       'invoke_host_function_entry_archived',
+      'invoke_host_function_insufficient_refundable_fee',
     ]) {
       expect(codes).toContain(code);
     }
