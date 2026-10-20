@@ -15,7 +15,7 @@ export function Header() {
     <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
       <SidebarTrigger />
       <Wordmark className="font-mono text-sm" />
-      <nav className="ml-auto flex items-center gap-3">
+      <nav className="ml-auto flex items-center gap-2 sm:gap-3">
         <Button asChild variant="link" size="sm" className="px-0">
           <Link href="/report">Report</Link>
         </Button>
@@ -29,7 +29,7 @@ export function Header() {
             </Button>
           </span>
         </Hint>
-        <Button asChild variant="ghost" size="icon">
+        <Button asChild variant="ghost" size="icon" className="hidden sm:inline-flex">
           <a href={REPO_URL} target="_blank" rel="noreferrer" aria-label="Source on GitHub">
             <GithubLogoIcon className="size-4" />
           </a>
