@@ -1,13 +1,15 @@
 'use client';
 
 import type { HarnessMessage } from '@harness/agent';
+import { CaretRightIcon } from '@phosphor-icons/react/ssr';
 import { getToolName } from 'ai';
-import { ActionCard } from '@/components/action-card';
 import { Shimmer } from '@/components/ai-elements/shimmer';
 import { Tool, ToolContent, ToolHeader } from '@/components/ai-elements/tool';
 import { ToolErrorRow } from '@/components/tool-error-row';
 import { AccountResult, ContractTtlResult, PreflightResult } from '@/components/tool-results';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { summarizeArgs } from '@/lib/format';
+import { isToolRunning, summarizeToolParts } from '@/lib/tool-summary';
 
 type Part = HarnessMessage['parts'][number];
 export type ToolCallPart = Extract<Part, { type: `tool-${string}` }>;
@@ -42,9 +44,6 @@ function ToolCallBody({ part }: { part: ToolCallPart }) {
 }
 
 export function ToolCall({ part }: { part: ToolCallPart }) {
-  if (part.type === 'tool-proposeAction' && part.state === 'output-available') {
-    return <ActionCard action={part.output} />;
-  }
   return (
     <Tool defaultOpen className="mb-0 rounded-none border-none bg-transparent">
       <ToolHeader
@@ -57,5 +56,22 @@ export function ToolCall({ part }: { part: ToolCallPart }) {
         <ToolCallBody part={part} />
       </ToolContent>
     </Tool>
+  );
+}
+
+export function ToolSteps({ parts }: { parts: ToolCallPart[] }) {
+  const summary = summarizeToolParts(parts) || 'working';
+  return (
+    <Collapsible className="not-prose">
+      <CollapsibleTrigger className="group flex cursor-pointer items-center gap-1 text-left font-mono text-xs text-muted-foreground hover:text-foreground">
+        <CaretRightIcon className="size-3 shrink-0 transition-transform group-data-[state=open]:rotate-90" />
+        {isToolRunning(parts) ? <Shimmer as="span">{`${summary}…`}</Shimmer> : summary}
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-1 pt-2 pl-4">
+        {parts.map((part) => (
+          <ToolCall key={part.toolCallId} part={part} />
+        ))}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

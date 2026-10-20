@@ -4,6 +4,7 @@ import { useChat } from '@ai-sdk/react';
 import type { HarnessMessage } from '@harness/agent';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
+import { ActionCard } from '@/components/action-card';
 import {
   Conversation,
   ConversationContent,
@@ -14,14 +15,38 @@ import { Shimmer } from '@/components/ai-elements/shimmer';
 import { ChatComposer } from '@/components/chat-composer';
 import { ChatIntro } from '@/components/chat-intro';
 import { InlineAlert } from '@/components/inline-alert';
-import { isToolCallPart, ToolCall } from '@/components/tool-call';
+import { isToolCallPart, ToolSteps } from '@/components/tool-call';
 
 type Part = HarnessMessage['parts'][number];
 
-function MessagePart({ part, role }: { part: Part; role: HarnessMessage['role'] }) {
-  if (isToolCallPart(part)) return <ToolCall part={part} />;
-  if (part.type !== 'text') return null;
-  return role === 'user' ? <p>{part.text}</p> : <MessageResponse>{part.text}</MessageResponse>;
+function AssistantParts({ parts }: { parts: Part[] }) {
+  const tools = parts.filter(isToolCallPart);
+  const actions = tools.flatMap((part) =>
+    part.type === 'tool-proposeAction' && part.state === 'output-available' ? [part.output] : [],
+  );
+  return (
+    <>
+      {parts.map((part, index) =>
+        part.type === 'text' ? (
+          // biome-ignore lint/suspicious/noArrayIndexKey: message parts are append-only
+          <MessageResponse key={index} className="text-base leading-relaxed">
+            {part.text}
+          </MessageResponse>
+        ) : null,
+      )}
+      {actions.map((action) => (
+        <ActionCard key={action.id} action={action} />
+      ))}
+      {tools.length > 0 && <ToolSteps parts={tools} />}
+    </>
+  );
+}
+
+function UserParts({ parts }: { parts: Part[] }) {
+  return parts.map((part, index) =>
+    // biome-ignore lint/suspicious/noArrayIndexKey: message parts are append-only
+    part.type === 'text' ? <p key={index}>{part.text}</p> : null,
+  );
 }
 
 export interface ChatProps {
@@ -59,10 +84,11 @@ export function Chat({ id, initialMessages = [], onMessagesChange }: ChatProps) 
             {messages.map((message) => (
               <Message key={message.id} from={message.role}>
                 <MessageContent>
-                  {message.parts.map((part, index) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: message parts are append-only
-                    <MessagePart key={index} part={part} role={message.role} />
-                  ))}
+                  {message.role === 'user' ? (
+                    <UserParts parts={message.parts} />
+                  ) : (
+                    <AssistantParts parts={message.parts} />
+                  )}
                 </MessageContent>
               </Message>
             ))}
