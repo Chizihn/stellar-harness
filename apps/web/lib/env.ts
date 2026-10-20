@@ -15,7 +15,7 @@ const chatShape = {
 };
 
 const dbShape = {
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required to store pilot requests'),
+  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required to read the report'),
 };
 
 const loadRootEnv = memo(() => {

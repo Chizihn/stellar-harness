@@ -17,7 +17,7 @@ export default async function Page() {
     >
       <WatchPanel watch={watch} org={ORG} />
       <SidebarInset className="min-h-0 min-w-0">
-        <Header org={ORG} />
+        <Header />
         <Suspense>
           <ChatPage />
         </Suspense>

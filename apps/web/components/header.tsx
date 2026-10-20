@@ -1,59 +1,41 @@
-import type { Operation, Org } from '@harness/schema';
 import { GithubLogoIcon } from '@phosphor-icons/react/ssr';
 import Link from 'next/link';
 import { Hint } from '@/components/hint';
-import { Button } from '@/components/ui/button';
-import { PilotSheet } from '@/components/pilot-sheet';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Wordmark } from '@/components/wordmark';
+import { REPO_URL } from '@/lib/links';
 
-const OPERATION_LABELS: Record<Operation, string> = {
-  extend_ttl: 'extend contract TTLs',
-  restore: 'restore archived contracts',
-  sponsor_trustline: 'sponsor trustlines',
-  payment: 'make payments',
-};
+export const WALLET_SOON =
+  "Coming soon. Connect your company's Stellar wallet and the harness watches it for you.";
 
-const listOf = (items: string[]): string =>
-  items.length > 1 ? `${items.slice(0, -1).join(', ')} and ${items.at(-1)}` : (items[0] ?? '');
-
-const REPO_URL = 'https://github.com/devodii/stellar-harness';
-
-export const policyLine = ({ policy }: Org): string =>
-  `Spends up to ${policy.dailySpendXlm} XLM a day and needs approval above ${policy.approvalAboveXlm} XLM. It may ${listOf(policy.allowedOperations.map((operation) => OPERATION_LABELS[operation]))}.`;
-
-export function Header({ org }: { org: Org }) {
+export function Header() {
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
       <SidebarTrigger />
       <Wordmark className="font-mono text-sm" />
-      <span className="hidden min-w-0 flex-1 truncate text-center text-sm md:block">
-        {org.name} on {org.network}
-      </span>
-      <div className="ml-auto flex items-center gap-3 md:ml-0">
-        <Hint hint={<span className="font-mono">{policyLine(org)}</span>} side="bottom">
-          <button
-            type="button"
-            className="hidden cursor-default rounded-full border px-2.5 py-0.5 text-xs sm:inline-flex"
-          >
-            Policy
-          </button>
+      <nav className="ml-auto flex items-center gap-3">
+        <Button asChild variant="link" size="sm" className="px-0">
+          <Link href="/report">Report</Link>
+        </Button>
+        <Button asChild variant="link" size="sm" className="px-0">
+          <Link href="/about">How it works</Link>
+        </Button>
+        <Hint hint={WALLET_SOON} side="bottom">
+          <span className="hidden sm:inline-flex">
+            <Button variant="outline" size="sm" disabled>
+              Connect wallet
+            </Button>
+          </span>
         </Hint>
-        <Button asChild variant="link" size="sm" className="px-0">
-          <Link href="/report">report</Link>
-        </Button>
-        <Button asChild variant="link" size="sm" className="px-0">
-          <Link href="/about">about</Link>
-        </Button>
-        <PilotSheet />
         <Button asChild variant="ghost" size="icon">
           <a href={REPO_URL} target="_blank" rel="noreferrer" aria-label="Source on GitHub">
             <GithubLogoIcon className="size-4" />
           </a>
         </Button>
         <ThemeToggle />
-      </div>
+      </nav>
     </header>
   );
 }

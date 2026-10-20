@@ -71,3 +71,5 @@ export const subjectHref = (
   if (subjectKind === 'repo' && subject.startsWith('https://')) return subject;
   return undefined;
 };
+
+export const REPO_URL = 'https://github.com/devodii/stellar-harness';
