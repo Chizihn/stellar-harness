@@ -16,13 +16,34 @@ import { ProposeActionInput, proposeAction, resolveSubject } from './org';
 export { type ProposeActionInput, proposeAction } from './org';
 
 export const SYSTEM_PROMPT = [
-  "You are Stellar Harness, the operator agent for one organisation. You only talk about this organisation's accounts and contracts, which you get from getOrg. Use tools before stating any fact. When you notice something that needs fixing, call simulate tools to get the cost, then call proposeAction. Say in one or two plain sentences what you found, what you propose, what it costs, and whether it is within the organisation's policy. You cannot execute anything in this demo; never say you did. Be terse. No marketing language.",
-  'Refer to accounts and contracts by their labels; the tools accept labels.',
-  'A contract that is archived or has fewer than 30 days left needs attention: simulate extending it to the network maximum of 180 days (or restoring it when archived) and propose that, one action per contract.',
-  'Never describe a fix you have not recorded with proposeAction: call it first, then report it.',
-  'Report policy exactly as proposeAction returned it: "within policy", or "needs approval" because the cost is above the approval threshold or the operation is not allowed.',
+  'Answer the question asked. Use the fewest tool calls needed. For questions about the network or the report, call getMainnetReport once and do not inspect individual contracts. Never call tools for one question you can answer from a previous result. Reply in short plain sentences before any detail.',
+  'You work for one demo company, which getOrg returns. Refer to its accounts and contracts by their labels; the tools accept labels. Nothing is signed or sent in this demo; never say you did.',
+  `A contract that is archived or has fewer than 30 days left needs fixing: simulate restoring it, or extending it to the network maximum of ${MAX_EXTEND_DAYS} days, then record the fix with proposeAction before you describe it, one per contract.`,
+  'Report policy as proposeAction returned it: within policy, or needs approval.',
   'A payment blocked by a missing trustline on one of our own accounts is fixed with sponsor_trustline: the sender sponsors the trustline, which locks 0.5 XLM of reserve. Propose it with that cost.',
 ].join('\n');
+
+export type MainnetReport = {
+  summary: {
+    total: number;
+    failed: number;
+    preventable: number;
+    retryable: number;
+    outOfScope: number;
+    startLedger: number | null;
+    endLedger: number | null;
+    contracts: {
+      archived: number;
+      expiring30d: number;
+      fixCostXlm: number;
+      fixCostUsd: number | null;
+      extendDays: number;
+    } | null;
+  };
+  topCodes: { code: string; bucket: string; count: number; share: number; fix: string | null }[];
+};
+
+export type AgentDeps = { readMainnetReport: () => Promise<MainnetReport> };
 
 const account = z
   .string()
@@ -32,7 +53,7 @@ const contract = z.string().describe('A contract label from getOrg (e.g. Escrow)
 const simulationSource = (org: Org): string =>
   (org.accounts.find((a) => a.role === 'treasury') ?? org.accounts[0])?.address ?? '';
 
-export const createAgentTools = (storage: Storage, clients: Clients) => {
+export const createAgentTools = (storage: Storage, clients: Clients, deps: AgentDeps) => {
   const resolve = async (ref: string) => resolveSubject(await storage.getOrg(), ref);
   const source = async () => simulationSource(await storage.getOrg());
 
@@ -91,6 +112,12 @@ export const createAgentTools = (storage: Storage, clients: Clients) => {
           asset,
           amount,
         }),
+    }),
+    getMainnetReport: tool({
+      description:
+        'Read-only. Returns the last 24 hours of Stellar mainnet from the harness report: total and failed transactions, failures split into preventable (the harness would have caught them), retryable and out of scope, the ledger range, active contracts archived or expiring within 30 days with the cost to fix them in XLM and USD and how many days that fix keeps them alive, and the most common failure codes with their share and fix. Call it once for any question about mainnet or the report.',
+      inputSchema: z.object({}),
+      execute: () => deps.readMainnetReport(),
     }),
     proposeAction: tool({
       description:

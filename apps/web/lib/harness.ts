@@ -1,5 +1,5 @@
 import 'server-only';
-import { createAgentTools } from '@harness/agent';
+import { createAgentTools, type MainnetReport } from '@harness/agent';
 import type { Action, Org, OrgAccount, OrgContract } from '@harness/schema';
 import {
   buildPaymentPreflight,
@@ -23,7 +23,11 @@ const storage = globals.harnessStorage;
 const clients = createClients(ORG.network);
 const treasury = ORG.accounts.find((account) => account.role === 'treasury')?.address ?? '';
 
-export const tools = createAgentTools(storage, clients);
+const readMainnetReport = async (): Promise<MainnetReport> => {
+  throw new Error('The mainnet report is not connected yet.');
+};
+
+export const tools = createAgentTools(storage, clients, { readMainnetReport });
 
 type WatchedAccount = OrgAccount & { xlm: string | null };
 export type WatchedContract = OrgContract & { ttl: ContractTtl | null };

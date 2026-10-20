@@ -32,7 +32,7 @@ export const POST = apiHandler({
       instructions: SYSTEM_PROMPT,
       messages: await convertToModelMessages(body.messages, { tools }),
       tools,
-      stopWhen: stepCountIs(8),
+      stopWhen: stepCountIs(5),
     });
     return result.toUIMessageStreamResponse({
       onError: (error) => {
