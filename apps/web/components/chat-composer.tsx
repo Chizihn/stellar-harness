@@ -9,6 +9,7 @@ import {
   PromptInputSubmit,
   PromptInputTextarea,
 } from '@/components/ai-elements/prompt-input';
+import { ChatGuide } from '@/components/chat-guide';
 
 export const COMPOSER_PLACEHOLDER = "Ask about the demo company's accounts and contracts";
 
@@ -38,7 +39,8 @@ export function ChatComposer({
       <PromptInputBody>
         <PromptInputTextarea placeholder={COMPOSER_PLACEHOLDER} disabled={disabled} />
       </PromptInputBody>
-      <PromptInputFooter className="justify-end">
+      <PromptInputFooter>
+        <ChatGuide />
         <PromptInputSubmit status={status} onStop={onStop} disabled={disabled} />
       </PromptInputFooter>
     </PromptInput>

@@ -22,9 +22,10 @@ export const Default: Story = {};
 
 export const Disabled: Story = { args: { disabled: true } };
 
-export const Selects: Story = {
+export const SendsThePrompt: Story = {
   play: async ({ canvasElement, args }) => {
-    await userEvent.click(within(canvasElement).getByRole('button', { name: SUGGESTIONS[1] }));
-    await expect(args.onSelect).toHaveBeenCalledWith(SUGGESTIONS[1]);
+    const [, payout] = SUGGESTIONS;
+    await userEvent.click(within(canvasElement).getByRole('button', { name: payout?.label }));
+    await expect(args.onSelect).toHaveBeenCalledWith(payout?.prompt);
   },
 };

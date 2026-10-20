@@ -32,3 +32,11 @@ export const Sends: Story = {
     await expect(args.onSubmit).toHaveBeenCalledWith('How is Escrow?');
   },
 };
+
+export const HasAGuide: Story = {
+  play: async ({ canvasElement }) => {
+    await expect(
+      within(canvasElement).getByRole('button', { name: 'How to use the chat' }),
+    ).toBeVisible();
+  },
+};
