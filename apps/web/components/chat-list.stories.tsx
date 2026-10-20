@@ -6,7 +6,7 @@ import { Sidebar, SidebarContent, SidebarProvider } from './ui/sidebar';
 const ITEMS = [
   { id: 'a', title: 'Check all our contracts and tell me which need attention' },
   { id: 'b', title: 'Can we pay 25 USDC from treasury to distribution right now?' },
-  { id: 'c', title: 'Is our anchor passing conformance?' },
+  { id: 'c', title: 'What broke on mainnet today?' },
 ];
 
 const meta: Meta<typeof ChatList> = {

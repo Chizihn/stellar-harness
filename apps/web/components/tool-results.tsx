@@ -1,10 +1,4 @@
-import type {
-  AccountView,
-  AnchorProbe,
-  ContractTtl,
-  EntryTtl,
-  Preflight,
-} from '@harness/stellar-tools';
+import type { AccountView, ContractTtl, EntryTtl, Preflight } from '@harness/stellar-tools';
 import { BracketTag } from '@/components/bracket-tag';
 import { KeyValueList } from '@/components/key-value-list';
 import { formatDecimal, truncateMiddle } from '@/lib/format';
@@ -63,17 +57,5 @@ export function PreflightResult({ preflight }: { preflight: Preflight }) {
         </li>
       ))}
     </ul>
-  );
-}
-
-export function AnchorProbeResult({ probe }: { probe: AnchorProbe }) {
-  return (
-    <KeyValueList
-      columns={1}
-      items={probe.stages.map((stage) => ({
-        label: stage.name,
-        value: stage.detail ? `${stage.status}, ${stage.detail}` : stage.status,
-      }))}
-    />
   );
 }

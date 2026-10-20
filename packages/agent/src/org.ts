@@ -13,7 +13,6 @@ export const isWithinPolicy = (policy: Policy, input: ProposeActionInput): boole
 const orgSubjects = (org: Org): string[] => [
   ...org.accounts.map((account) => account.address),
   ...org.contracts.map((contract) => contract.id),
-  ...(org.anchorDomain ? [org.anchorDomain] : []),
 ];
 
 export const resolveSubject = (org: Org, ref: string): string => {

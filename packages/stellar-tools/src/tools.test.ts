@@ -1,7 +1,6 @@
-import { Account, Address, Keypair, Networks, WebAuth, xdr } from '@stellar/stellar-sdk';
+import { Account, Address, Keypair, Networks, xdr } from '@stellar/stellar-sdk';
 import { describe, expect, it } from 'vitest';
 import { getAccount } from './account';
-import { probeAnchor } from './anchor';
 import type { Clients, HorizonAccount } from './clients';
 import { getContractTtl, ttlOf } from './contract-ttl';
 import { buildPaymentPreflight, checkPayment } from './preflight';
@@ -69,7 +68,6 @@ const fakeClients = (overrides: Partial<Clients> = {}): Clients => {
     passphrase: Networks.TESTNET,
     loadAccount: async (address) => accounts[address] ?? null,
     rpc: rpcFake,
-    fetch: async () => new Response('not found', { status: 404 }),
     ...overrides,
   };
 };
@@ -183,80 +181,5 @@ describe('buildPaymentPreflight', () => {
     await expect(
       buildPaymentPreflight(fakeClients(), { ...payment, from: Keypair.random().publicKey() }),
     ).rejects.toThrow('does not exist');
-  });
-});
-
-describe('probeAnchor', () => {
-  const server = Keypair.random();
-  const domain = 'anchor.test';
-  const toml = [
-    `SIGNING_KEY="${server.publicKey()}"`,
-    `WEB_AUTH_ENDPOINT="https://${domain}/auth"`,
-    `TRANSFER_SERVER_SEP0024="https://${domain}/sep24"`,
-  ].join('\n');
-
-  const anchorFetch =
-    (routes: Record<string, () => Response>): typeof fetch =>
-    async (input) => {
-      const url = new URL(String(input));
-      return routes[url.pathname]?.() ?? new Response('missing', { status: 404 });
-    };
-
-  it('passes every stage for a conformant anchor', async () => {
-    const fetch = anchorFetch({
-      '/.well-known/stellar.toml': () => new Response(toml),
-      '/sep24/info': () => Response.json({ deposit: {} }),
-      '/auth': () =>
-        Response.json({
-          transaction: WebAuth.buildChallengeTx(
-            server,
-            Keypair.random().publicKey(),
-            domain,
-            300,
-            Networks.TESTNET,
-            domain,
-          ),
-        }),
-    });
-    const probe = await probeAnchor(fakeClients({ fetch }), domain);
-    expect(probe.stages.map((s) => `${s.name}:${s.status}`)).toEqual([
-      'toml:ok',
-      'signing key:ok',
-      '/info:ok',
-      'sep-10:ok',
-    ]);
-  });
-
-  it('verifies the challenge against the passphrase the anchor declares', async () => {
-    const mainnetToml = `${toml}\nNETWORK_PASSPHRASE="${Networks.PUBLIC}"`;
-    const fetch = anchorFetch({
-      '/.well-known/stellar.toml': () => new Response(mainnetToml),
-      '/sep24/info': () => Response.json({ deposit: {} }),
-      '/auth': () =>
-        Response.json({
-          transaction: WebAuth.buildChallengeTx(
-            server,
-            Keypair.random().publicKey(),
-            domain,
-            300,
-            Networks.PUBLIC,
-            domain,
-          ),
-        }),
-    });
-    const probe = await probeAnchor(fakeClients({ fetch }), domain);
-    expect(probe.stages.find((s) => s.name === 'sep-10')?.status).toBe('ok');
-  });
-
-  it('reports the failing stage', async () => {
-    const fetch = anchorFetch({ '/.well-known/stellar.toml': () => new Response(toml) });
-    const probe = await probeAnchor(fakeClients({ fetch }), domain);
-    expect(probe.stages.find((s) => s.name === '/info')).toMatchObject({ status: 'fail' });
-    expect(probe.stages.find((s) => s.name === 'sep-10')).toMatchObject({ status: 'fail' });
-  });
-
-  it('stops when stellar.toml is unreachable', async () => {
-    const probe = await probeAnchor(fakeClients(), domain);
-    expect(probe.stages).toEqual([{ name: 'toml', status: 'fail', detail: 'HTTP 404' }]);
   });
 });

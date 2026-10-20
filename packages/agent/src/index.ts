@@ -5,7 +5,6 @@ import {
   getAccount,
   getContractTtl,
   MAX_EXTEND_DAYS,
-  probeAnchor,
   simulateExtendTtl,
   simulateRestore,
 } from '@harness/stellar-tools';
@@ -17,9 +16,8 @@ import { ProposeActionInput, proposeAction, resolveSubject } from './org';
 export { type ProposeActionInput, proposeAction } from './org';
 
 export const SYSTEM_PROMPT = [
-  "You are Stellar Harness, the operator agent for one organisation. You only talk about this organisation's accounts, contracts and anchor domain, which you get from getOrg. Use tools before stating any fact. When you notice something that needs fixing, call simulate tools to get the cost, then call proposeAction. Say in one or two plain sentences what you found, what you propose, what it costs, and whether it is within the organisation's policy. You cannot execute anything in this demo; never say you did. Be terse. No marketing language.",
+  "You are Stellar Harness, the operator agent for one organisation. You only talk about this organisation's accounts and contracts, which you get from getOrg. Use tools before stating any fact. When you notice something that needs fixing, call simulate tools to get the cost, then call proposeAction. Say in one or two plain sentences what you found, what you propose, what it costs, and whether it is within the organisation's policy. You cannot execute anything in this demo; never say you did. Be terse. No marketing language.",
   'Refer to accounts and contracts by their labels; the tools accept labels.',
-  'The anchor domain is a public anchor the organisation depends on but does not operate (see anchorDomainNote): report its probe results plainly and do not propose actions for it.',
   'A contract that is archived or has fewer than 30 days left needs attention: simulate extending it to the network maximum of 180 days (or restoring it when archived) and propose that, one action per contract.',
   'Never describe a fix you have not recorded with proposeAction: call it first, then report it.',
   'Report policy exactly as proposeAction returned it: "within policy", or "needs approval" because the cost is above the approval threshold or the operation is not allowed.',
@@ -41,7 +39,7 @@ export const createAgentTools = (storage: Storage, clients: Clients) => {
   return {
     getOrg: tool({
       description:
-        'Read-only. Returns the organisation this harness operates for: its name, network, accounts (address, label, role), contracts (id, label), anchor domain and policy (daily spend limit, allowed operations, approval threshold in XLM). Call it first; every other tool works only on subjects it returns.',
+        'Read-only. Returns the organisation this harness operates for: its name, network, accounts (address, label, role), contracts (id, label) and policy (daily spend limit, allowed operations, approval threshold in XLM). Call it first; every other tool works only on subjects it returns.',
       inputSchema: z.object({}),
       execute: () => storage.getOrg(),
     }),
@@ -56,12 +54,6 @@ export const createAgentTools = (storage: Storage, clients: Clients) => {
         'Read-only. Reads one of our contracts from Soroban RPC: days left before the instance and its wasm code are archived, whether either is already archived, and the wasm hash.',
       inputSchema: z.object({ contract }),
       execute: async ({ contract }) => getContractTtl(clients, await resolve(contract)),
-    }),
-    probeAnchor: tool({
-      description:
-        "Read-only. Probes our anchor domain over HTTPS: fetches its stellar.toml, checks the signing key, calls each transfer server's /info and requests a SEP-10 challenge, which it verifies without signing. Returns each stage as ok, fail or skip with a reason.",
-      inputSchema: z.object({ domain: z.string().describe('The anchor domain from getOrg') }),
-      execute: async ({ domain }) => probeAnchor(clients, await resolve(domain)),
     }),
     simulateExtendTtl: tool({
       description:

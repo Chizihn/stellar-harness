@@ -28,15 +28,6 @@ const WATCH: Watch = {
     { id: fakeContract('escrow'), label: 'Escrow', ttl: ttl(6.9) },
     { id: fakeContract('registry'), label: 'Registry', ttl: ttl(0, true) },
   ],
-  anchor: {
-    domain: 'testanchor.stellar.org',
-    stages: [
-      { name: 'toml', status: 'ok', detail: '' },
-      { name: 'signing key', status: 'ok', detail: '' },
-      { name: '/info', status: 'ok', detail: '' },
-      { name: 'sep-10', status: 'ok', detail: '' },
-    ],
-  },
   actions: [
     {
       id: 'a1',
@@ -73,28 +64,12 @@ export const Default: Story = {};
 
 export const NothingProposed: Story = { args: { watch: { ...WATCH, actions: [] } } };
 
-export const AnchorFailing: Story = {
-  args: {
-    watch: {
-      ...WATCH,
-      anchor: {
-        domain: 'testanchor.stellar.org',
-        stages: [
-          { name: 'toml', status: 'ok', detail: '' },
-          { name: '/info', status: 'fail', detail: 'HTTP 503' },
-        ],
-      },
-    },
-  },
-};
-
 export const ReadsUnavailable: Story = {
   args: {
     watch: {
       ...WATCH,
       accounts: WATCH.accounts.map((account) => ({ ...account, xlm: null })),
       contracts: WATCH.contracts.map((contract) => ({ ...contract, ttl: null })),
-      anchor: null,
     },
   },
 };

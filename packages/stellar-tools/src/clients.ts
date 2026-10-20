@@ -41,7 +41,6 @@ export type Clients = {
   passphrase: string;
   loadAccount(address: string): Promise<HorizonAccount | null>;
   rpc: Pick<rpc.Server, 'getAccount' | 'getLedgerEntries' | 'simulateTransaction'>;
-  fetch: typeof fetch;
 };
 
 export const createClients = (network: Network): Clients => {
@@ -56,7 +55,6 @@ export const createClients = (network: Network): Clients => {
       return (await response.json()) as HorizonAccount;
     },
     rpc: new rpc.Server(endpoints.rpc),
-    fetch: (input, init) => fetch(input, { signal: AbortSignal.timeout(10_000), ...init }),
   };
 };
 

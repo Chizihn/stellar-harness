@@ -20,7 +20,7 @@ export const Default: Story = {
 
 export const WithDescription: Story = {
   render: () => (
-    <FieldStory schema={z.object({ tag: z.string() })} defaultValues={{ tag: 'anchor' }}>
+    <FieldStory schema={z.object({ tag: z.string() })} defaultValues={{ tag: 'treasury' }}>
       {(control) => (
         <TextField
           control={control}

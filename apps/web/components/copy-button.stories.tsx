@@ -12,4 +12,4 @@ type Story = StoryObj<typeof CopyButton>;
 
 export const Default: Story = {};
 
-export const CustomLabel: Story = { args: { label: 'Copy transaction hash' } };
+export const WithLabel: Story = { args: { label: 'Copy transaction hash' } };

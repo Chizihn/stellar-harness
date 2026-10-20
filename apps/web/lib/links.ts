@@ -68,7 +68,6 @@ export const subjectHref = (
   if (subjectKind === 'contract') {
     return toContractId(subject) ? explorerUrl('contract', subject, network) : undefined;
   }
-  if (subjectKind === 'anchor_domain') return `https://${subject}/.well-known/stellar.toml`;
   if (subjectKind === 'repo' && subject.startsWith('https://')) return subject;
   return undefined;
 };

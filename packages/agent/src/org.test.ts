@@ -11,7 +11,6 @@ const org: Org = {
   network: 'testnet',
   accounts: [],
   contracts: [{ id: ESCROW, label: 'Escrow' }],
-  anchorDomain: 'testanchor.stellar.org',
   policy: { dailySpendXlm: 50, allowedOperations: ['extend_ttl', 'restore'], approvalAboveXlm: 10 },
 };
 

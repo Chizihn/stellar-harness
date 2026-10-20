@@ -7,7 +7,6 @@ import { memo } from './memo';
 
 const serverShape = {
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  ANCHOR_DOMAIN: z.string().min(1).optional(),
 };
 
 const chatShape = {

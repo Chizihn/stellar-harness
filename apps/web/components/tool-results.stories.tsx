@@ -1,11 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { fakeAccount, fakeContract, fakeHash } from './story-ids';
-import {
-  AccountResult,
-  AnchorProbeResult,
-  ContractTtlResult,
-  PreflightResult,
-} from './tool-results';
+import { AccountResult, ContractTtlResult, PreflightResult } from './tool-results';
 
 const meta: Meta = {
   title: 'components/ToolResults',
@@ -90,20 +85,4 @@ export const PreflightBlocked: Story = {
 
 export const PreflightOk: Story = {
   render: () => <PreflightResult preflight={{ ok: true, blockers: [] }} />,
-};
-
-export const AnchorProbe: Story = {
-  render: () => (
-    <AnchorProbeResult
-      probe={{
-        domain: 'testanchor.stellar.org',
-        stages: [
-          { name: 'toml', status: 'ok', detail: '' },
-          { name: 'signing key', status: 'ok', detail: '' },
-          { name: '/info', status: 'fail', detail: 'HTTP 503' },
-          { name: 'sep-10', status: 'skip', detail: 'no WEB_AUTH_ENDPOINT declared' },
-        ],
-      }}
-    />
-  ),
 };

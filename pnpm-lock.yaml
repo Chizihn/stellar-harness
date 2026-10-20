@@ -271,9 +271,6 @@ importers:
       '@stellar/stellar-sdk':
         specifier: 17.2.1
         version: 17.2.1
-      smol-toml:
-        specifier: 1.9.0
-        version: 1.9.0
     devDependencies:
       vitest:
         specifier: 5.0.3

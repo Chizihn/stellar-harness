@@ -16,9 +16,6 @@ describe('explorer links', () => {
     ).toBe(
       'https://stellar.expert/explorer/testnet/contract/CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSC4',
     );
-    expect(subjectHref('anchor_domain', 'testanchor.stellar.org', 'testnet')).toBe(
-      'https://testanchor.stellar.org/.well-known/stellar.toml',
-    );
   });
 
   it('turns a raw hex contract id into its C... address and never links anything else', () => {

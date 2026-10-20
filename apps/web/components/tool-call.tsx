@@ -6,12 +6,7 @@ import { ActionCard } from '@/components/action-card';
 import { Shimmer } from '@/components/ai-elements/shimmer';
 import { Tool, ToolContent, ToolHeader } from '@/components/ai-elements/tool';
 import { ToolErrorRow } from '@/components/tool-error-row';
-import {
-  AccountResult,
-  AnchorProbeResult,
-  ContractTtlResult,
-  PreflightResult,
-} from '@/components/tool-results';
+import { AccountResult, ContractTtlResult, PreflightResult } from '@/components/tool-results';
 import { summarizeArgs } from '@/lib/format';
 
 type Part = HarnessMessage['parts'][number];
@@ -31,8 +26,6 @@ function ToolOutput({ part }: { part: ToolCallPart }) {
       return <ContractTtlResult ttl={part.output} />;
     case 'tool-buildPaymentPreflight':
       return <PreflightResult preflight={part.output} />;
-    case 'tool-probeAnchor':
-      return <AnchorProbeResult probe={part.output} />;
     default:
       return null;
   }

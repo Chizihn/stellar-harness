@@ -1,5 +1,4 @@
 import type { Org } from '@harness/schema';
-import type { AnchorProbe } from '@harness/stellar-tools';
 import * as React from 'react';
 import { ActionCard } from '@/components/action-card';
 import { Address } from '@/components/address';
@@ -16,18 +15,6 @@ import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar'
 import { formatDecimal } from '@/lib/format';
 import type { Watch, WatchedContract } from '@/lib/harness';
 import { explorerUrl } from '@/lib/links';
-
-const anchorStatus = (probe: AnchorProbe | null): string => {
-  if (!probe) return 'unavailable';
-  const failing = probe.stages.find((stage) => stage.status === 'fail');
-  if (failing) return `${failing.name} failed`;
-  const passing = probe.stages
-    .filter((stage) => stage.status === 'ok' && stage.name !== 'signing key')
-    .map((stage) => stage.name);
-  if (passing.length === 0) return 'nothing checked yet';
-  const last = passing.pop();
-  return `${passing.length > 0 ? `${passing.join(', ')} and ${last}` : last} all pass`;
-};
 
 function ContractStatus({ ttl }: Pick<WatchedContract, 'ttl'>) {
   if (!ttl) return <span className="text-muted-foreground">unavailable</span>;
@@ -66,7 +53,7 @@ function Row({
 
 export interface WatchPanelProps {
   watch: Watch;
-  org: Pick<Org, 'name' | 'network' | 'anchorDomain' | 'anchorDomainNote'>;
+  org: Pick<Org, 'name' | 'network'>;
 }
 
 const TRIGGER_CLASS =
@@ -123,17 +110,6 @@ export function WatchPanel({ watch, org }: WatchPanelProps) {
                   />
                 ))}
               </Section>
-              {org.anchorDomain && (
-                <Section title="anchor">
-                  <li>
-                    <p className="text-sm">{org.anchorDomain}</p>
-                    <p className="font-mono text-xs">{anchorStatus(watch.anchor)}</p>
-                    {org.anchorDomainNote && (
-                      <p className="pt-1 text-xs text-muted-foreground">{org.anchorDomainNote}</p>
-                    )}
-                  </li>
-                </Section>
-              )}
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="actions">

@@ -10,7 +10,7 @@ import {
   PromptInputTextarea,
 } from '@/components/ai-elements/prompt-input';
 
-export const COMPOSER_PLACEHOLDER = "Ask about the organisation's accounts, contracts or anchor";
+export const COMPOSER_PLACEHOLDER = "Ask about the demo company's accounts and contracts";
 
 export interface ChatComposerProps {
   onSubmit: (text: string) => void;
