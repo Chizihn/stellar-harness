@@ -238,6 +238,19 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@22.20.5)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.2(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
+  packages/chain:
+    dependencies:
+      '@stellar/stellar-sdk':
+        specifier: 17.2.1
+        version: 17.2.1
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
+    devDependencies:
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@22.20.5)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.2(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+
   packages/scanner:
     dependencies:
       '@stellar/anchor-tests':
@@ -278,19 +291,16 @@ importers:
 
   packages/storage:
     dependencies:
+      '@harness/chain':
+        specifier: workspace:*
+        version: link:../chain
       '@harness/schema':
         specifier: workspace:*
         version: link:../schema
-      papaparse:
-        specifier: ^5.7.0
-        version: 5.7.0
       postgres:
         specifier: 3.4.9
         version: 3.4.9
     devDependencies:
-      '@types/papaparse':
-        specifier: ^5.5.2
-        version: 5.5.2
       vitest:
         specifier: 5.0.3
         version: 5.0.3(@types/node@22.20.5)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.2(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))

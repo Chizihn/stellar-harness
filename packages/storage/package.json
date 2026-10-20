@@ -6,20 +6,18 @@
   "exports": {
     ".": "./src/index.ts",
     "./pg": "./src/pg.ts",
-    "./pilot": "./src/pilot.ts",
-    "./report": "./src/report.ts"
+    "./live": "./src/live.ts"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@harness/chain": "workspace:*",
     "@harness/schema": "workspace:*",
-    "papaparse": "^5.7.0",
     "postgres": "3.4.9"
   },
   "devDependencies": {
-    "@types/papaparse": "^5.5.2",
     "vitest": "5.0.3"
   }
 }
