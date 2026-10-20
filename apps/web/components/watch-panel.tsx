@@ -2,8 +2,8 @@ import type { Org } from '@harness/schema';
 import * as React from 'react';
 import { ActionCard } from '@/components/action-card';
 import { Address } from '@/components/address';
-import { NewChatButton, SidebarChats } from '@/components/chat-list';
 import { BracketTag } from '@/components/bracket-tag';
+import { NewChatButton, SidebarChats } from '@/components/chat-list';
 import { StatLabel } from '@/components/stat';
 import {
   Accordion,
@@ -61,7 +61,7 @@ const TRIGGER_CLASS =
 
 export function WatchPanel({ watch, org }: WatchPanelProps) {
   return (
-    <Sidebar>
+    <Sidebar className="md:absolute md:h-full">
       <SidebarHeader className="gap-2 border-b px-4 py-3 text-foreground">
         <p className="text-xs text-muted-foreground md:hidden">
           {org.name} on {org.network}

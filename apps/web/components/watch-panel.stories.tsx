@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { DEMO_ORG } from '@/demo-org';
 import type { Watch } from '@/lib/harness';
-import { fakeAccount, fakeContract, fakeHash } from './story-ids';
 import { ConversationsProvider } from './conversations-provider';
+import { fakeAccount, fakeContract, fakeHash } from './story-ids';
 import { SidebarProvider } from './ui/sidebar';
 import { WatchPanel } from './watch-panel';
 
