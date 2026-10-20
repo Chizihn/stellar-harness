@@ -43,7 +43,7 @@ const seedContract = async (storage: Storage, reads: SeedReads, contract: OrgCon
   const simulation = await reads.simulateExtendTtl(contract.id, MAX_EXTEND_DAYS);
   await proposeAction(storage, {
     subject: contract.id,
-    title: `Extend TTL on ${contract.label} by ${MAX_EXTEND_DAYS} days`,
+    title: `Keep ${contract.label} alive for ${MAX_EXTEND_DAYS} days`,
     why: `${contract.label} expires in ${formatDecimal(ttl.instance.daysLeft, 1)} days; extending keeps it callable.`,
     operation: 'extend_ttl',
     estimatedCostXlm: simulation.estimatedCostXlm,
@@ -62,7 +62,7 @@ const seedTrustline = async (storage: Storage, reads: SeedReads, org: Org) => {
   if (!preflight.blockers.some((blocker) => blocker.code === 'op_no_trust')) return;
   await proposeAction(storage, {
     subject: distribution.address,
-    title: `Sponsor USDC trustline for ${distribution.label}`,
+    title: `Let ${distribution.label} receive USDC`,
     why: `${distribution.label} has no USDC trustline, so payments to it fail; the cost is the ${TRUSTLINE_RESERVE_XLM} XLM base reserve the sponsor locks.`,
     operation: 'sponsor_trustline',
     estimatedCostXlm: TRUSTLINE_RESERVE_XLM,

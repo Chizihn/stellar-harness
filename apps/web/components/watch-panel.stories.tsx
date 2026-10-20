@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { expect, userEvent, within } from 'storybook/test';
 import { DEMO_ORG } from '@/demo-org';
 import type { Watch } from '@/lib/harness';
+import { spendingRules } from '@/lib/policy';
 import { ConversationsProvider } from './conversations-provider';
 import { fakeAccount, fakeContract, fakeHash } from './story-ids';
 import { SidebarProvider } from './ui/sidebar';
-import { WatchPanel } from './watch-panel';
+import { companyTitle, WATCH_HINTS, WatchPanel } from './watch-panel';
 
 const ttl = (daysLeft: number, archived = false) => ({
   contractId: fakeContract('escrow'),
@@ -32,7 +34,7 @@ const WATCH: Watch = {
     {
       id: 'a1',
       subject: fakeContract('escrow'),
-      title: 'Extend TTL on Escrow by 180 days',
+      title: 'Keep Escrow alive for 180 days',
       why: 'Escrow has 6.9 days left.',
       operation: 'extend_ttl',
       estimatedCostXlm: 27.31,
@@ -49,7 +51,7 @@ const meta: Meta<typeof WatchPanel> = {
   decorators: [
     (Story) => (
       <ConversationsProvider>
-        <SidebarProvider className="h-[720px] min-h-0">
+        <SidebarProvider className="relative h-[720px] min-h-0">
           <Story />
         </SidebarProvider>
       </ConversationsProvider>
@@ -60,7 +62,25 @@ export default meta;
 
 type Story = StoryObj<typeof WatchPanel>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole('button', { name: companyTitle(DEMO_ORG) })).toBeVisible();
+    await expect(canvas.getByRole('button', { name: /Fixes the harness found/ })).toBeVisible();
+    for (const rule of spendingRules(DEMO_ORG.policy)) {
+      await expect(canvas.getByText(rule)).toBeVisible();
+    }
+  },
+};
+
+export const ExplainsTerms: Story = {
+  play: async ({ canvasElement }) => {
+    await userEvent.hover(within(canvasElement).getByText('Contracts'));
+    await expect(await within(document.body).findByRole('tooltip')).toHaveTextContent(
+      WATCH_HINTS.contracts,
+    );
+  },
+};
 
 export const NothingProposed: Story = { args: { watch: { ...WATCH, actions: [] } } };
 

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect, userEvent, within } from 'storybook/test';
 import { BracketTag } from './bracket-tag';
-import { Hint } from './hint';
+import { Hint, HintTerm } from './hint';
 
 const HANDOFF_HINT =
   'Simulated with Soroban RPC simulateTransaction: nothing is signed or submitted.';
@@ -26,5 +26,20 @@ export const OpensOnFocus: Story = {
     await userEvent.tab();
     await expect(canvas.getByText('[handoff]')).toHaveFocus();
     await expect(await within(document.body).findByRole('tooltip')).toHaveTextContent(HANDOFF_HINT);
+  },
+};
+
+export const Term: Story = {
+  render: () => (
+    <p className="text-sm">
+      <HintTerm hint="Wallets the company sends and receives money from.">Accounts</HintTerm>
+    </p>
+  ),
+  play: async ({ canvasElement }) => {
+    await userEvent.tab();
+    await expect(within(canvasElement).getByText('Accounts')).toHaveFocus();
+    await expect(await within(document.body).findByRole('tooltip')).toHaveTextContent(
+      'Wallets the company',
+    );
   },
 };

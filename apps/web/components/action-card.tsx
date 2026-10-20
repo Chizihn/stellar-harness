@@ -5,11 +5,26 @@ import { Hint } from '@/components/hint';
 import { Button } from '@/components/ui/button';
 import { formatDecimal } from '@/lib/format';
 
-export const COMING_SOON =
-  "Coming soon, this will run under the organisation's smart-account policy.";
+export const COMING_SOON = "Coming soon. Runs under the company's on-chain spending rules.";
 
-const policyLabel = (action: Action): string =>
-  action.withinPolicy ? 'within policy' : 'needs approval';
+export const POLICY_HINTS = {
+  within: 'Small enough for the harness to run on its own.',
+  approval: 'The owner must approve this with a passkey.',
+} as const;
+
+function PolicyTag({ withinPolicy }: Pick<Action, 'withinPolicy'>) {
+  return (
+    <Hint hint={withinPolicy ? POLICY_HINTS.within : POLICY_HINTS.approval}>
+      <BracketTag
+        label={withinPolicy ? 'within policy' : 'needs approval'}
+        tone={withinPolicy ? 'muted' : 'default'}
+        emphasis={!withinPolicy}
+        tabIndex={0}
+        className="cursor-help"
+      />
+    </Hint>
+  );
+}
 
 const costLabel = (action: Action): string =>
   action.estimatedCostXlm === undefined
@@ -50,12 +65,7 @@ export function ActionCard({ action, compact = false, className }: ActionCardPro
       {!compact && <p className="text-sm text-muted-foreground">{action.why}</p>}
       <p className="flex flex-wrap items-center gap-x-3 font-mono text-xs">
         <span>{costLabel(action)}</span>
-        <BracketTag
-          label={policyLabel(action)}
-          tone={action.withinPolicy ? 'muted' : 'default'}
-          emphasis={!action.withinPolicy}
-        />
-        {!compact && <span className="text-muted-foreground">{action.operation}</span>}
+        <PolicyTag withinPolicy={action.withinPolicy} />
       </p>
       <ActionButtons />
     </article>

@@ -4,6 +4,7 @@ import { ActionCard } from '@/components/action-card';
 import { Address } from '@/components/address';
 import { BracketTag } from '@/components/bracket-tag';
 import { NewChatButton, SidebarChats } from '@/components/chat-list';
+import { HintTerm } from '@/components/hint';
 import { StatLabel } from '@/components/stat';
 import {
   Accordion,
@@ -11,21 +12,45 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/ui/sidebar';
 import { formatDecimal } from '@/lib/format';
 import type { Watch, WatchedContract } from '@/lib/harness';
 import { explorerUrl } from '@/lib/links';
+import { spendingRules } from '@/lib/policy';
+
+export const WATCH_HINTS = {
+  accounts: 'Wallets the company sends and receives money from.',
+  contracts: 'Programs the company runs on Stellar. They expire unless renewed.',
+  daysLeft: 'Time until this contract is archived and stops working.',
+} as const;
+
+export const companyTitle = (org: Pick<Org, 'name' | 'network'>): string =>
+  `Demo company: ${org.name} (${org.network})`;
 
 function ContractStatus({ ttl }: Pick<WatchedContract, 'ttl'>) {
   if (!ttl) return <span className="text-muted-foreground">unavailable</span>;
   if (ttl.instance.archived) return <BracketTag label="archived" tone="default" emphasis />;
-  return <span>{formatDecimal(ttl.instance.daysLeft, 1)} days left</span>;
+  return (
+    <HintTerm hint={WATCH_HINTS.daysLeft}>
+      {formatDecimal(ttl.instance.daysLeft, 1)} days left
+    </HintTerm>
+  );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="space-y-2">
-      <StatLabel>{title}</StatLabel>
+      <StatLabel>
+        <HintTerm hint={hint}>{title}</HintTerm>
+      </StatLabel>
       <ul className="space-y-2">{children}</ul>
     </section>
   );
@@ -53,30 +78,26 @@ function Row({
 
 export interface WatchPanelProps {
   watch: Watch;
-  org: Pick<Org, 'name' | 'network'>;
+  org: Pick<Org, 'name' | 'network' | 'policy'>;
 }
 
-const TRIGGER_CLASS =
-  'py-2 text-xs font-normal tracking-wide text-muted-foreground [font-variant-caps:all-small-caps] hover:no-underline';
+const TRIGGER_CLASS = 'py-2 text-left text-sm font-medium hover:no-underline';
 
 export function WatchPanel({ watch, org }: WatchPanelProps) {
   return (
     <Sidebar className="md:absolute md:h-full">
-      <SidebarHeader className="gap-2 border-b px-4 py-3 text-foreground">
-        <p className="text-xs text-muted-foreground md:hidden">
-          {org.name} on {org.network}
-        </p>
+      <SidebarHeader className="border-b px-4 py-3 text-foreground">
         <NewChatButton />
       </SidebarHeader>
       <SidebarContent className="gap-4 p-4 text-foreground">
         <React.Suspense>
           <SidebarChats />
         </React.Suspense>
-        <Accordion type="multiple" defaultValue={['watching', 'actions']}>
+        <Accordion type="multiple" defaultValue={['watching', 'fixes']}>
           <AccordionItem value="watching">
-            <AccordionTrigger className={TRIGGER_CLASS}>what the harness watches</AccordionTrigger>
+            <AccordionTrigger className={TRIGGER_CLASS}>{companyTitle(org)}</AccordionTrigger>
             <AccordionContent className="space-y-5">
-              <Section title="accounts">
+              <Section title="Accounts" hint={WATCH_HINTS.accounts}>
                 {watch.accounts.map((account) => (
                   <Row
                     key={account.address}
@@ -95,7 +116,7 @@ export function WatchPanel({ watch, org }: WatchPanelProps) {
                   />
                 ))}
               </Section>
-              <Section title="contracts">
+              <Section title="Contracts" hint={WATCH_HINTS.contracts}>
                 {watch.contracts.map((contract) => (
                   <Row
                     key={contract.id}
@@ -112,13 +133,13 @@ export function WatchPanel({ watch, org }: WatchPanelProps) {
               </Section>
             </AccordionContent>
           </AccordionItem>
-          <AccordionItem value="actions">
+          <AccordionItem value="fixes">
             <AccordionTrigger className={TRIGGER_CLASS}>
-              {`proposed actions (${watch.actions.length})`}
+              {`Fixes the harness found (${watch.actions.length})`}
             </AccordionTrigger>
             <AccordionContent>
               {watch.actions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">None yet.</p>
+                <p className="text-sm text-muted-foreground">Nothing needs fixing right now.</p>
               ) : (
                 watch.actions.map((action) => (
                   <ActionCard key={action.id} action={action} compact />
@@ -128,6 +149,14 @@ export function WatchPanel({ watch, org }: WatchPanelProps) {
           </AccordionItem>
         </Accordion>
       </SidebarContent>
+      <SidebarFooter className="gap-1 border-t px-4 py-3 text-foreground">
+        <StatLabel>Spending rules</StatLabel>
+        <ul className="space-y-0.5 text-xs text-muted-foreground">
+          {spendingRules(org.policy).map((rule) => (
+            <li key={rule}>{rule}</li>
+          ))}
+        </ul>
+      </SidebarFooter>
     </Sidebar>
   );
 }
