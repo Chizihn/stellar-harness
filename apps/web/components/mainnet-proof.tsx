@@ -12,8 +12,8 @@ export function MainnetProof({ preventable, failed }: MainnetProofProps) {
       {failed > 0 && (
         <span>
           In the last 24 hours on Stellar mainnet,{' '}
-          <span className="font-mono font-medium">{formatCount(preventable)}</span> of{' '}
-          {formatCount(failed)} failed transactions could have been prevented by a check.{' '}
+          <span className="font-medium">{formatCount(preventable)}</span> of {formatCount(failed)}{' '}
+          failed transactions could have been prevented by a check.{' '}
         </span>
       )}
       <Link href="/report" className="underline underline-offset-4 hover:text-muted-foreground">
