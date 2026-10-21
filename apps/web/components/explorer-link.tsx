@@ -1,5 +1,5 @@
-import { type ExplorerKind, explorerUrl } from '@/lib/links';
 import { truncateMiddle } from '@/lib/format';
+import { type ExplorerKind, explorerUrl } from '@/lib/links';
 
 export interface ExplorerLinkProps {
   kind: ExplorerKind;
