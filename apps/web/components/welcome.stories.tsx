@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect, within } from 'storybook/test';
+import { MainnetProof } from './mainnet-proof';
 import { VALUE_LINE, Welcome } from './welcome';
 
 const meta: Meta<typeof Welcome> = {
@@ -27,13 +28,8 @@ export const Default: Story = {
 };
 
 export const WithProof: Story = {
-  args: {
-    proof: (
-      <p className="text-sm">
-        <a href="/report" className="underline underline-offset-4">
-          See what is failing on mainnet right now
-        </a>
-      </p>
-    ),
+  args: { proof: <MainnetProof preventable={41_382} failed={96_210} /> },
+  play: async ({ canvasElement }) => {
+    await expect(within(canvasElement).getByText(/could have been prevented/)).toBeVisible();
   },
 };

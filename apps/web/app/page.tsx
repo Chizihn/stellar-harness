@@ -2,15 +2,19 @@ import type * as React from 'react';
 import { Suspense } from 'react';
 import { ChatPage } from '@/components/chat-page';
 import { Header } from '@/components/header';
+import { MainnetProof } from '@/components/mainnet-proof';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { WatchPanel } from '@/components/watch-panel';
 import { Welcome } from '@/components/welcome';
 import { ORG, readWatch } from '@/lib/harness';
+import { getSummary } from '@/lib/live';
+
+const readProof = () => getSummary().catch(() => null);
 
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  const watch = await readWatch();
+  const [watch, summary] = await Promise.all([readWatch(), readProof()]);
   return (
     <SidebarProvider
       className="h-svh min-h-0"
@@ -20,7 +24,18 @@ export default async function Page() {
       <SidebarInset className="min-h-0 min-w-0">
         <Header network={ORG.network} />
         <Suspense>
-          <ChatPage welcome={<Welcome network={ORG.network} />} />
+          <ChatPage
+            welcome={
+              <Welcome
+                network={ORG.network}
+                proof={
+                  summary && (
+                    <MainnetProof preventable={summary.preventable} failed={summary.failed} />
+                  )
+                }
+              />
+            }
+          />
         </Suspense>
       </SidebarInset>
     </SidebarProvider>
