@@ -6,4 +6,4 @@ Env: `DATABASE_URL` (required), `RPC_URL` (default `https://mainnet.sorobanrpc.c
 
 Run: `pnpm --filter worker start`.
 
-Railway: root directory = repo root, build command `pnpm --filter worker build`, start command `pnpm --filter worker start`, health check path `/health`, one replica.
+Railway: the service is defined in `.railway/railway.ts` (build `pnpm --filter worker build`, start `pnpm --filter worker start`, health check `/health`, one replica). `.github/workflows/worker.yml` deploys it on every push to main that touches the worker or the packages it uses, with the `RAILWAY_TOKEN` repository secret.
