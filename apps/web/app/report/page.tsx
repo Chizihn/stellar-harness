@@ -97,9 +97,6 @@ export default async function ReportPage() {
             {snapshotPath}
           </a>
         </span>
-        <a href={`mailto:${CONTACT}`} className={LINK}>
-          {CONTACT}
-        </a>
       </footer>
     </main>
   );
