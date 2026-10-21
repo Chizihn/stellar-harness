@@ -24,6 +24,7 @@
     "depcheck": "^1.4.7",
     "knip": "^6.39.0",
     "prettier": "^3.9.9",
+    "railway": "3.16.0",
     "typescript": "5.9.3"
   }
 }
