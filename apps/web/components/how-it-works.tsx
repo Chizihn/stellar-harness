@@ -1,7 +1,10 @@
 import type { Network } from '@harness/schema';
 import { cn } from 'cn';
+import { BracketTag } from '@/components/bracket-tag';
 
-export const HOW_IT_WORKS_STEPS = [
+type Step = { title: string; body: string; soon?: boolean };
+
+export const HOW_IT_WORKS_STEPS: readonly Step[] = [
   {
     title: 'Connect',
     body: 'Connect the accounts and contracts your business runs on Stellar.',
@@ -17,11 +20,12 @@ export const HOW_IT_WORKS_STEPS = [
   {
     title: 'Run it within your rules',
     body: 'It runs the fix within spending rules you set on-chain. Anything above your limit needs your approval with a passkey.',
+    soon: true,
   },
-] as const;
+];
 
 export const demoScope = (network: Network): string =>
-  `This demo does steps 1 to 3 on ${network}. Step 4 is being built.`;
+  `This demo uses a sample company on ${network}. It finds problems and prepares fixes, but does not run them yet.`;
 
 export interface HowItWorksStepsProps {
   layout?: 'row' | 'column';
@@ -45,9 +49,10 @@ export function HowItWorksSteps({ layout = 'row', className }: HowItWorksStepsPr
             layout === 'column' && 'first:border-t-0 first:pt-0',
           )}
         >
-          <p className="flex items-baseline gap-2 font-medium">
-            <span className="font-mono text-xs text-muted-foreground">{index + 1}</span>
+          <p className="font-medium">
+            <span className="mr-2 font-mono text-xs text-muted-foreground">{index + 1}</span>
             {step.title}
+            {step.soon && <BracketTag label="coming soon" className="ml-2" />}
           </p>
           <p className="text-sm text-muted-foreground">{step.body}</p>
         </li>

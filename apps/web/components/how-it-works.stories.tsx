@@ -15,6 +15,7 @@ export const Row: Story = {
     await expect(within(canvasElement).getAllByRole('listitem')).toHaveLength(
       HOW_IT_WORKS_STEPS.length,
     );
+    await expect(within(canvasElement).getByText('[coming soon]')).toBeVisible();
   },
 };
 
