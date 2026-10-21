@@ -9,5 +9,6 @@
         "lib/mixin.ts"
       ]
     }
-  }
+  },
+  "ignore": [".git/**"]
 }
