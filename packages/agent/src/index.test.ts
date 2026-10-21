@@ -2,7 +2,7 @@ import type { Org } from '@harness/schema';
 import type { Clients } from '@harness/stellar-tools';
 import { MemoryStorage } from '@harness/storage';
 import { describe, expect, it } from 'vitest';
-import { createAgentTools, type MainnetReport, SYSTEM_PROMPT } from './index';
+import { createAgentTools, type MainnetReport, orgBrief, SYSTEM_PROMPT } from './index';
 
 const org: Org = {
   id: 'demo',
@@ -26,6 +26,18 @@ const report: MainnetReport = {
   },
   topCodes: [{ code: 'op_underfunded', bucket: 'preventable', count: 6, share: 0.6, fix: null }],
 };
+
+describe('orgBrief', () => {
+  it('names every account and contract label', () => {
+    const brief = orgBrief({
+      ...org,
+      accounts: [{ address: 'G1', label: 'Treasury', role: 'treasury' }],
+      contracts: [{ id: 'C1', label: 'Escrow' }],
+    });
+    expect(brief).toContain('Treasury (treasury)');
+    expect(brief).toContain('Escrow');
+  });
+});
 
 describe('getMainnetReport', () => {
   it('returns what the injected reader returns', async () => {

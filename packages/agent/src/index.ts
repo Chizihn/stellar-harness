@@ -23,6 +23,14 @@ export const SYSTEM_PROMPT = [
   'A payment blocked by a missing trustline on one of our own accounts is fixed with sponsor_trustline: the sender sponsors the trustline, which locks 0.5 XLM of reserve. Propose it with that cost.',
 ].join('\n');
 
+export const orgBrief = (org: Org): string =>
+  [
+    `The demo company is ${org.name} on ${org.network}.`,
+    `Its accounts: ${org.accounts.map((a) => `${a.label} (${a.role})`).join(', ')}.`,
+    `Its contracts: ${org.contracts.map((c) => c.label).join(', ')}.`,
+    'Use these labels directly; call getOrg only for addresses or the policy.',
+  ].join(' ');
+
 export type MainnetReport = {
   summary: {
     total: number;
@@ -60,7 +68,7 @@ export const createAgentTools = (storage: Storage, clients: Clients, deps: Agent
   return {
     getOrg: tool({
       description:
-        'Read-only. Returns the organisation this harness operates for: its name, network, accounts (address, label, role), contracts (id, label) and policy (daily spend limit, allowed operations, approval threshold in XLM). Call it first; every other tool works only on subjects it returns.',
+        'Read-only. Returns the organisation this harness operates for: its name, network, accounts (address, label, role), contracts (id, label) and policy (daily spend limit, allowed operations, approval threshold in XLM). Every other tool works only on these subjects.',
       inputSchema: z.object({}),
       execute: () => storage.getOrg(),
     }),
