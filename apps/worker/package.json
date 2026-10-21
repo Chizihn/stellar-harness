@@ -3,11 +3,6 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "exports": {
-    "./env": "./src/env.ts",
-    "./log": "./src/log.ts",
-    "./run": "./src/run.ts"
-  },
   "scripts": {
     "start": "tsx src/main.ts",
     "build": "tsc -p tsconfig.json",

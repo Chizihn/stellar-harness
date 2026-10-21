@@ -47,7 +47,7 @@ export const sqlStore = (sql: Sql): Store => ({
 
 export type Deps = { rpc: Rpc; store: Store; log: Log; now?: () => Date };
 
-export type Range = { from: number; to: number };
+type Range = { from: number; to: number };
 
 export const resumeFrom = (cursor: number | null, oldestLedger: number): number | null =>
   cursor !== null && cursor + 1 >= oldestLedger ? cursor + 1 : null;
@@ -55,7 +55,7 @@ export const resumeFrom = (cursor: number | null, oldestLedger: number): number 
 export const backfillFrom = (oldestLedger: number, latestLedger: number, closeSeconds: number) =>
   Math.max(oldestLedger, latestLedger - Math.ceil(DAY_SECONDS / closeSeconds));
 
-export const syncLedgers = async (
+const syncLedgers = async (
   { rpc, store }: Deps,
   range: Range,
   cursorName: string,

@@ -12,7 +12,6 @@
     "lint": "biome lint .",
     "format": "prettier --write .",
     "test": "pnpm -r test",
-    "scan": "pnpm --filter scan-cli scan",
     "worker": "pnpm --filter worker start",
     "format:check": "prettier --check .",
     "knip": "knip",
