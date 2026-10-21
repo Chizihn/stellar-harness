@@ -1,7 +1,7 @@
 import { Account, Address, Keypair, Networks, xdr } from '@stellar/stellar-sdk';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { getAccount } from './account';
-import type { Clients, HorizonAccount } from './clients';
+import { type Clients, type HorizonAccount, retryOnStall } from './clients';
 import { getContractTtl, ttlOf } from './contract-ttl';
 import { buildPaymentPreflight, checkPayment } from './preflight';
 import { ledgersForDays, MAX_EXTEND_LEDGERS, simulateExtendTtl, simulateRestore } from './simulate';
@@ -71,6 +71,28 @@ const fakeClients = (overrides: Partial<Clients> = {}): Clients => {
     ...overrides,
   };
 };
+
+describe('retryOnStall', () => {
+  const never = () => new Promise<string>(() => {});
+
+  it('returns the first call when it answers in time', async () => {
+    const call = vi.fn(async () => 'ok');
+    await expect(retryOnStall(call, 50)).resolves.toBe('ok');
+    expect(call).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts a fresh call when the first one stalls', async () => {
+    const call = vi.fn().mockImplementationOnce(never).mockResolvedValueOnce('second');
+    await expect(retryOnStall(call, 10)).resolves.toBe('second');
+    expect(call).toHaveBeenCalledTimes(2);
+  });
+
+  it('passes an error through without retrying', async () => {
+    const call = vi.fn().mockRejectedValueOnce(new Error('bad request'));
+    await expect(retryOnStall(call, 50)).rejects.toThrow('bad request');
+    expect(call).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe('getAccount', () => {
   it('reads balance, signers and trustlines', async () => {
