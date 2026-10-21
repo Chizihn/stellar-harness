@@ -4,7 +4,7 @@ import { demoScope, HowItWorksSteps } from '@/components/how-it-works';
 
 export const VALUE_LINE =
   "Stellar Harness keeps a business's Stellar accounts and contracts working.";
-export const VALUE_DETAIL = "It watches them, catches what's about to break, and prepares the fix.";
+const VALUE_DETAIL = "It watches them, catches what's about to break, and prepares the fix.";
 
 export interface WelcomeProps {
   network: Network;
