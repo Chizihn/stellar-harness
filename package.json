@@ -14,7 +14,6 @@
     "test": "pnpm -r test",
     "scan": "pnpm --filter scan-cli scan",
     "report": "pnpm --filter scan-cli scan report",
-    "report:publish": "tsx scripts/publish-report.ts",
     "format:check": "prettier --check .",
     "knip": "knip",
     "depcheck": "pnpm -r exec depcheck"
@@ -25,10 +24,6 @@
     "depcheck": "^1.4.7",
     "knip": "^6.39.0",
     "prettier": "^3.9.9",
-    "tsx": "4.23.15",
     "typescript": "5.9.3"
-  },
-  "dependencies": {
-    "@harness/storage": "workspace:*"
   }
 }
