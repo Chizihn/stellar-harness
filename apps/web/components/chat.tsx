@@ -51,11 +51,12 @@ function UserParts({ parts }: { parts: Part[] }) {
 
 export interface ChatProps {
   id: string;
+  welcome?: React.ReactNode;
   initialMessages?: HarnessMessage[];
   onMessagesChange?: (messages: HarnessMessage[]) => void;
 }
 
-export function Chat({ id, initialMessages = [], onMessagesChange }: ChatProps) {
+export function Chat({ id, welcome, initialMessages = [], onMessagesChange }: ChatProps) {
   const router = useRouter();
   const { messages, sendMessage, status, stop, error } = useChat<HarnessMessage>({
     id,
@@ -75,8 +76,11 @@ export function Chat({ id, initialMessages = [], onMessagesChange }: ChatProps) 
   return (
     <main className="flex min-h-0 flex-1 flex-col">
       {messages.length === 0 ? (
-        <div className="flex min-h-0 flex-1 overflow-y-auto p-6">
-          <ChatIntro onSelect={send} disabled={busy} className="m-auto" />
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-8 sm:px-6">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-10">
+            {welcome}
+            <ChatIntro onSelect={send} disabled={busy} className="max-w-none border-t pt-8" />
+          </div>
         </div>
       ) : (
         <Conversation className="min-h-0">

@@ -17,7 +17,7 @@ export function ChatIntro({ onSelect, disabled, className }: ChatIntroProps) {
   return (
     <div className={cn('w-full max-w-2xl space-y-5', className)}>
       <div className="space-y-2">
-        <h1 className="text-lg font-medium">{INTRO_TITLE}</h1>
+        <h2 className="text-lg font-medium">{INTRO_TITLE}</h2>
         <p className="text-sm text-muted-foreground">{INTRO_BODY}</p>
       </div>
       <ChatSuggestions onSelect={onSelect} disabled={disabled} />

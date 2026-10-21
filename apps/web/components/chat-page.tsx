@@ -9,7 +9,7 @@ import { useConversations } from '@/components/conversations-provider';
 import { useMounted } from '@/hooks/use-mounted';
 import { chatHref, newConversation, sameMessages, withMessages } from '@/lib/conversations';
 
-export function ChatPage() {
+export function ChatPage({ welcome }: { welcome?: React.ReactNode }) {
   const router = useRouter();
   const store = useConversations();
   const mounted = useMounted();
@@ -30,6 +30,7 @@ export function ChatPage() {
   if (!mounted) return <main className="flex-1" />;
   return (
     <Chat
+      welcome={welcome}
       key={id}
       id={id}
       initialMessages={store.get(id)?.messages ?? []}

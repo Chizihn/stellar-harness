@@ -4,6 +4,7 @@ import { expect, within } from 'storybook/test';
 import { Chat } from './chat';
 import { INTRO_TITLE } from './chat-intro';
 import { fakeContract } from './story-ids';
+import { VALUE_LINE, Welcome } from './welcome';
 
 const ESCROW = fakeContract('escrow');
 
@@ -76,6 +77,15 @@ type Story = StoryObj<typeof Chat>;
 export const Empty: Story = {
   play: async ({ canvasElement }) => {
     await expect(within(canvasElement).getByRole('heading', { name: INTRO_TITLE })).toBeVisible();
+  },
+};
+
+export const WithWelcome: Story = {
+  args: { welcome: <Welcome network="testnet" /> },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole('heading', { name: VALUE_LINE })).toBeVisible();
+    await expect(canvas.getByRole('heading', { name: INTRO_TITLE })).toBeVisible();
   },
 };
 
