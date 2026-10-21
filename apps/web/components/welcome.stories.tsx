@@ -23,7 +23,7 @@ export const Default: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole('heading', { name: VALUE_LINE })).toBeVisible();
-    await expect(canvas.getByText(/steps 1 to 3 on testnet/)).toBeVisible();
+    await expect(canvas.getByText(/sample company on testnet/)).toBeVisible();
   },
 };
 
