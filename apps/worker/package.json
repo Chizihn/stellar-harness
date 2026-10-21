@@ -1,0 +1,29 @@
+{
+  "name": "worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./env": "./src/env.ts",
+    "./log": "./src/log.ts",
+    "./run": "./src/run.ts"
+  },
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@harness/chain": "workspace:*",
+    "@harness/schema": "workspace:*",
+    "@harness/storage": "workspace:*",
+    "@hono/node-server": "2.1.4",
+    "hono": "4.13.13",
+    "pino": "^10.3.1",
+    "tsx": "4.23.15",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "vitest": "5.0.3"
+  }
+}
