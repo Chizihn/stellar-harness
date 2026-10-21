@@ -1,5 +1,5 @@
 import 'server-only';
-import { createAgentTools, type MainnetReport } from '@harness/agent';
+import { createAgentTools } from '@harness/agent';
 import type { Action, Org, OrgAccount, OrgContract } from '@harness/schema';
 import {
   buildPaymentPreflight,
@@ -12,6 +12,7 @@ import {
 } from '@harness/stellar-tools';
 import { MemoryStorage } from '@harness/storage';
 import { DEMO_ORG } from '@/demo-org';
+import { getMainnetReport } from './live';
 import { ttlCache } from './memo';
 import { SEED_EVERY_MS, type SeedReads, seedActions } from './seed-actions';
 
@@ -23,11 +24,7 @@ const storage = globals.harnessStorage;
 const clients = createClients(ORG.network);
 const treasury = ORG.accounts.find((account) => account.role === 'treasury')?.address ?? '';
 
-const readMainnetReport = async (): Promise<MainnetReport> => {
-  throw new Error('The mainnet report is not connected yet.');
-};
-
-export const tools = createAgentTools(storage, clients, { readMainnetReport });
+export const tools = createAgentTools(storage, clients, { readMainnetReport: getMainnetReport });
 
 type WatchedAccount = OrgAccount & { xlm: string | null };
 export type WatchedContract = OrgContract & { ttl: ContractTtl | null };
