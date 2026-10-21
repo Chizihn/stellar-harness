@@ -349,21 +349,25 @@ export const readTopAccounts = async (
       select account, bucket, count, dominant_code from ledger_account_counts
       where ledger >= ${windowStart(sql)} and bucket in ('preventable', 'retryable')
     ),
-    totals as (
+    top as (
       select account,
              coalesce(sum(count) filter (where bucket = 'preventable'), 0) as preventable,
              coalesce(sum(count) filter (where bucket = 'retryable'), 0) as retryable
       from fixable group by account
+      order by sum(count) desc, account
+      limit ${limit}
     ),
     dominant as (
       select distinct on (account) account, dominant_code
-      from (select account, dominant_code, sum(count) as n from fixable group by 1, 2) codes
+      from (
+        select f.account, f.dominant_code, sum(f.count) as n
+        from fixable f join top using (account) group by 1, 2
+      ) codes
       order by account, n desc, dominant_code
     )
     select t.account, t.preventable, t.retryable, d.dominant_code
-    from totals t join dominant d using (account)
+    from top t join dominant d using (account)
     order by t.preventable + t.retryable desc, t.account
-    limit ${limit}
   `;
   return rows.map((row) => ({
     account: row.account,
