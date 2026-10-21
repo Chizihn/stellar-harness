@@ -4,90 +4,56 @@ Resume here: read this file and `DECISIONS.md` first.
 
 ## Status
 
-| Milestone              | State                                                                                                                                 |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| M0 to M7 scanner       | Done. Five censuses, `REPORT.md`, 843 tests. Kept as-is for the public report; now self-contained in `packages/scanner`.              |
-| M9 delete              | Done. See below.                                                                                                                      |
-| M10 organisation model | Done. `Org`, `Action`, in-memory storage, eight agent tools, demo organisation on testnet.                                            |
-| M11 one screen         | Done. Header, watched panel with live numbers, chat with four suggestions and four result renderers, action cards, pilot.             |
-| M12 wire and document  | Done. Three chips end in action cards against the live organisation; the anchor chip reports a passing anchor (see DEMO.md).          |
-| M13 demo polish        | Done. Seeded actions at boot, Registry extended and Escrow left to expire, clpx.finance as a real failing anchor, chip timings below. |
+| Milestone               | State                                                                                                                            |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| M10 to M13 demo         | Done. One testnet organisation, eight agent tools, watched panel, chat with four chips and action cards, seeded fixes.           |
+| M16 live report and API | Done locally. Chain package, worker, scan CLI, six `/api/v1` routes, live `/report`, home page with how it works and live proof. |
+| Production              | Not yet. Worker on Railway, `DATABASE_URL` and `OPENAI_API_KEY` on Vercel, migrations on the production database.                |
 
-`pnpm build`, `pnpm lint`, `pnpm test`, the Storybook tests, `pnpm knip` and `pnpm depcheck` pass.
+`pnpm build`, `pnpm lint`, `pnpm test`, `pnpm format:check`, the Storybook tests, `pnpm knip` and `pnpm depcheck` pass.
 
-## Report (M14, M15)
+## Live report
 
-Published to the report database on 2026-10-04 from snapshot ledger 64,756,250, 2026-10-03 22:37 UTC. Every census ran fresh against that snapshot.
+Local worker against Docker Postgres, caught up on 2026-10-21 at 02:51 UTC after the 24 hour backfill (17,280 ledgers, 65,035,783 to 65,053,062).
 
-| Headline                                                      | Value                                        |
-| ------------------------------------------------------------- | -------------------------------------------- |
-| Preventable failures in 24 hours                              | 79,181 of 1,163,430 failed, 5,009,956 total  |
-| Active contracts archived, expiring within 30 days            | 240, 120                                     |
-| Anchor domains tested, serving a stellar.toml, passing SEP-10 | 202, 68, 10                                  |
-| 12-month rent for 2,000 sampled live contracts                | 55,533.91 XLM at 0.21572 XLM/USD, 2026-10-04 |
+| Last 24 hours                                      | Value                                            |
+| -------------------------------------------------- | ------------------------------------------------ |
+| Transactions, failed                               | 4,565,565, 997,547                               |
+| Failures a check would have prevented              | 70,961                                           |
+| Failures that could be retried and completed       | 838,427                                          |
+| Active contracts archived, expiring within 30 days | 253, 155                                         |
+| Cost to keep them alive for 180 days               | 18,013.65 XLM (about $3,286 at 0.182422 XLM/USD) |
 
-- Page: https://stellarharness.xyz/report
-- https://stellarharness.xyz/report/files/failed_tx_by_code.csv
-- https://stellarharness.xyz/report/files/contracts_archived_meaningful.csv
-- https://stellarharness.xyz/report/files/anchors_failing.csv
+- Top codes: `op_over_source_max` 546,470, `op_under_dest_min` 291,770, `op_underfunded` 40,234, `invoke_host_function_trapped` 33,233, `op_too_few_offers` 32,134, `op_no_trust` 20,304.
+- `/health` lag 0 ledgers once caught up. The backfill ran at about 1.6 to 2.7 ledgers per second; nine transaction reads hit RPC 429s while the first contracts run shared the RPC, and each was retried from the cursor.
+- The first daily snapshot is written at 00:05 UTC after a full day of running.
 
-## Chip timings (M13)
+## Chip timings (M16)
 
-Production build, fresh browser per chip, 2026-10-03, `gpt-4.1`. Time from click to the action card, and to the end of the reply.
+Production build on this machine, `gpt-4.1`, 2026-10-21, three runs each. Time to the end of the reply.
 
-| Chip                                                        | Action card        | Reply done |
-| ----------------------------------------------------------- | ------------------ | ---------- |
-| Check all our contracts and tell me which need attention    | 8.4 s              | 10.4 s     |
-| Can we pay 25 USDC from treasury to distribution right now? | 3.9 s              | 5.7 s      |
-| What would it cost to keep Escrow alive for six months?     | 7.9 s              | 9.4 s      |
-| Is our anchor passing conformance?                          | none, reports only | 6.6 s      |
+| Chip                          | Time      | Tool calls                                                      |
+| ----------------------------- | --------- | --------------------------------------------------------------- |
+| What needs fixing right now?  | 7 to 16 s | 6: two accounts and two contracts in one step, restore, propose |
+| Why would a USDC payout fail? | 4 to 5 s  | 2: preflight, propose                                           |
+| When does Escrow expire?      | 6 to 11 s | 3: contract, restore, propose                                   |
+| What broke on mainnet today?  | 3 to 5 s  | 1: `getMainnetReport`                                           |
 
-Every tool showed its running state and the composer was disabled while the agent worked.
+The slow runs are the public testnet RPC stalling for 10 s or more on one request; reads now race a fresh request after 3 s.
 
-## Deleted in patch 02
-
-- Web features: the findings explorer and drawer, `/about`, the live strip, the chat list and local storage history, plans and handoffs, the connect sheet, the network picker, image attachments, and every component that only served them (timeline, data table, swipe to reply, json view, page header, stat tiles and the rest).
-- API routes: `findings`, `summary`, `live`, `network`, `waitlist`.
-- Tools: `getTransaction`, `explainFailure`, `queryFindings`, `getSummary`, `searchEcosystem`, `planFix`, `getNetworkStatus`, and the old `stellar-tools` internals (now owned by the scanner).
-- Schema and storage: findings, summaries, snapshots, plans, JSON file and SQLite storage, the old Postgres findings store and its import scripts.
-- Repo: `scripts/`, the scanner and web Dockerfiles, Vercel config, the root tsconfig, the testnet scan path.
-
-## Kept
-
-The engineering kit stays: `apiHandler` with validation, rate limits and error masking on every route; the validated env loader; the pino logger; `fetchJson` and `Result` on the client; `memo` and `ttlCache`; the core shadcn primitives (select, input, button, checkbox, dialog, sheet, drawer, tooltip, popover, command and the rest); the RHF and Zod form fields with `useZodForm`; the responsive sheet; the AI Elements the chat uses; Storybook with a story for every component; the light and dark themes with the toggle.
-
-## The screen
+## Layout
 
 ```
-apps/web/demo-org.ts                          the demo organisation: accounts, contracts, anchor, policy
-apps/web/app/page.tsx                         the one screen: header, watched panel, chat
-apps/web/app/layout.tsx                       fonts and providers
-apps/web/app/api/chat/route.ts                streams the model with the eight tools, through apiHandler
-apps/web/app/api/pilot/route.ts               stores a pilot request in Postgres, through apiHandler
-apps/web/lib/harness.ts                       server singletons and cached live reads for the watched panel
-apps/web/lib/db.ts                            Postgres client, migrated on first use
-apps/web/lib/pilot.ts                         client call for a pilot request, returning a Result
-apps/web/components/header.tsx                wordmark, organisation and network, policy hint, pilot sheet, theme toggle
-apps/web/components/watch-panel.tsx           accounts, contracts, anchor and proposed actions
-apps/web/components/action-card.tsx           a proposed action with disabled execute and approve
-apps/web/components/chat.tsx                  suggestions, messages and the composer
-apps/web/components/chat-suggestions.tsx      the four suggestions
-apps/web/components/chat-composer.tsx         the prompt input
-apps/web/components/tool-call.tsx             tool call header, status and result
-apps/web/components/tool-results.tsx          account, ttl, preflight and anchor renderers
-apps/web/components/pilot-sheet.tsx           request a pilot: responsive sheet and form
-packages/agent/src/index.ts                   the eight AI SDK tools and the system prompt
-packages/agent/src/org.ts                     label resolution, policy check and proposeAction
-packages/stellar-tools/src/*.ts               the six tools: account, contract ttl, simulate, anchor, preflight, clients
-packages/storage/src/index.ts                 Storage and MemoryStorage
-packages/storage/src/pg.ts                    Postgres client and migration runner
-packages/storage/src/migrations.ts            SQL migrations
-packages/storage/src/pilot.ts                 pilot requests
-packages/schema/src/*.ts                      Org and Action, Result and AppError, defineEnv
+packages/chain          decoder, classifier, RPC client, ledger tallies, contract checks (method in its README)
+packages/storage        Storage for the demo, Postgres client, migrations, live tables
+packages/stellar-tools  the testnet reads and simulations the agent uses
+packages/agent          the eight AI SDK tools, the system prompt and the org brief
+packages/schema         Org, Action, Result, AppError, defineEnv
+apps/worker             Hono worker: transactions loop, hourly contracts, daily snapshot, /health
+apps/scan-cli           pnpm scan txs --from --to, pnpm scan contracts, pnpm scan all
+apps/web                home page with chat, /report, /api/chat, /api/v1/*
 ```
-
-Shared kit: `apps/web/components/{ui,ai-elements,forms}`, `apps/web/components/{address,copy-button,bracket-tag,hint,inline-alert,key-value-list,stat,tool-error-row,wordmark,responsive-sheet}.tsx`, `apps/web/hooks`, `apps/web/lib/{api-handler,env,log,http,memo,rate-limit,format,links,tone}.ts`.
 
 ## Next step
 
-Make execution real: give the organisation a smart account whose policy matches `Org.policy`, connect it through Stellar Wallets Kit agent mode, and turn the disabled execute and approve buttons into a signed submission within policy and an owner approval above it. Until then, extend Escrow and Registry on testnet before they archive if the demo needs them live, or keep them as the archived case.
+Deploy: the worker on Railway with `DATABASE_URL`, `RPC_URL` and `SIMULATION_SOURCE`, then the web app on Vercel with `DATABASE_URL` and `OPENAI_API_KEY` pointing at the same database. After that, make execution real: a smart account whose policy matches `Org.policy`, connected through Stellar Wallets Kit, turning the disabled Connect wallet, execute and approve buttons into signed submissions.
