@@ -12,6 +12,7 @@
     "lint": "biome lint .",
     "format": "prettier --write .",
     "test": "pnpm -r test",
+    "worker": "pnpm --filter worker start",
     "format:check": "prettier --check .",
     "knip": "knip",
     "depcheck": "pnpm -r exec depcheck"
