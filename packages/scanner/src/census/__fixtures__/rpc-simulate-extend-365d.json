@@ -1,9 +1,0 @@
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "transactionData": "AAAAAAAAAAIAAAAGAAAAAQ3VxxDqakojsyIH/RMOrfnJzomfQwjpPk/+U/uvEIoEAAAAFAAAAAEAAAAHTD2z69LWoqsj3h9iLqq7OVAVObRhG2hiLsTkf3bEugcAAAAAAAAAAAAAAAAAAAAAAAAAAB1NSGw=",
-    "minResourceFee": "491604076",
-    "latestLedger": 64722853
-  }
-}
