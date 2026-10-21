@@ -12,6 +12,7 @@ import {
 } from '@harness/storage/live';
 import { db } from './db';
 import {
+  CACHE_SECONDS,
   type CodeRow,
   type CodesPayload,
   type ContractStatus,
@@ -26,7 +27,7 @@ import {
 
 export const PUBLIC_API = {
   cors: true,
-  cacheControl: 'public, max-age=15',
+  cacheControl: `public, max-age=${CACHE_SECONDS}`,
   rateLimit: { limit: 120, windowSeconds: 60 },
 } as const;
 
@@ -45,6 +46,13 @@ const windowOf = (summary: LiveSummary, now: Date): Window => ({
 
 const ratio = (part: number, whole: number): number =>
   whole > 0 ? Math.round((part / whole) * 10_000) / 10_000 : 0;
+
+const OUT_OF_SCOPE_PLAIN = 'A failure the harness does not act on.';
+
+const plainOf = (code: string): string => {
+  const info = classify(code);
+  return info.bucket === 'out_of_scope' ? OUT_OF_SCOPE_PLAIN : info.plain;
+};
 
 export const buildSummary = (summary: LiveSummary, now: Date): SummaryPayload => ({
   ...windowOf(summary, now),
@@ -74,14 +82,14 @@ export const buildCodes = (
         count: row.count,
         share: ratio(row.count, total),
         fix: info.fix,
-        plain: info.plain,
+        plain: plainOf(row.code),
       };
     })
     .sort((a, b) => b.count - a.count || a.code.localeCompare(b.code));
   return { ...window, codes };
 };
 
-export const OTHER_PLAIN = 'Failures the harness does not act on, grouped into one row.';
+const OTHER_PLAIN = 'Failures the harness does not act on, grouped into one row.';
 
 export const whatFailedRows = (codes: CodeRow[]): WhatFailedRow[] => {
   const known = codes
@@ -112,12 +120,16 @@ export const buildRecent = (rows: FailedTx[], window: Window): RecentPayload => 
     source: row.source,
     code: row.code,
     bucket: row.bucket,
+    plain: plainOf(row.code),
   })),
 });
 
-export const buildTopAccounts = (rows: TopAccount[], window: Window): TopAccountsPayload => ({
+export const buildTopAccounts = (
+  rows: Omit<TopAccount, 'plain'>[],
+  window: Window,
+): TopAccountsPayload => ({
   ...window,
-  accounts: rows,
+  accounts: rows.map((row) => ({ ...row, plain: plainOf(row.dominantCode) })),
 });
 
 export const buildContracts = (

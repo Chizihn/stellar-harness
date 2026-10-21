@@ -4,6 +4,8 @@ export const FEED_SIZE = 20;
 
 export const LAG_DELAYED_SECONDS = 120;
 
+export const CACHE_SECONDS = 15;
+
 const Bucket = z.enum(['preventable', 'retryable', 'out_of_scope']);
 
 const Ledger = z.number().int().nullable();
@@ -14,7 +16,7 @@ const WindowShape = {
   endLedger: Ledger,
 };
 
-export const ContractsSummary = z.object({
+const ContractsSummary = z.object({
   checkedAt: z.string(),
   archived: z.number(),
   expiring30d: z.number(),
@@ -54,15 +56,15 @@ export type CodeRow = z.infer<typeof CodeRow>;
 export const CodesPayload = z.object({ ...WindowShape, codes: z.array(CodeRow) });
 export type CodesPayload = z.infer<typeof CodesPayload>;
 
-export const RecentFailure = z.object({
+const RecentFailure = z.object({
   ledger: z.number().int(),
   time: z.string(),
   txHash: z.string(),
   source: z.string(),
   code: z.string(),
   bucket: Bucket,
+  plain: z.string(),
 });
-export type RecentFailure = z.infer<typeof RecentFailure>;
 
 export const RecentPayload = z.object({ ...WindowShape, failures: z.array(RecentFailure) });
 export type RecentPayload = z.infer<typeof RecentPayload>;
@@ -72,6 +74,7 @@ export const TopAccount = z.object({
   preventable: z.number(),
   retryable: z.number(),
   dominantCode: z.string(),
+  plain: z.string(),
 });
 export type TopAccount = z.infer<typeof TopAccount>;
 

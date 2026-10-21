@@ -7,6 +7,7 @@ import {
   buildRecent,
   buildSnapshot,
   buildSummary,
+  buildTopAccounts,
   whatFailedRows,
 } from './live';
 
@@ -113,7 +114,16 @@ describe('payloads', () => {
       source: 'G1',
       code: 'op_underfunded',
       bucket: 'preventable',
+      plain: "The sending account didn't have enough funds.",
     });
+  });
+
+  it('explains the main reason of each top account', () => {
+    const [row] = buildTopAccounts(
+      [{ account: 'G1', preventable: 2, retryable: 1, dominantCode: 'op_no_trust' }],
+      window,
+    ).accounts;
+    expect(row?.plain).toBe("The receiver hasn't enabled this asset yet.");
   });
 
   it('drops the scf project from contracts', () => {
