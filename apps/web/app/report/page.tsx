@@ -91,12 +91,7 @@ export default async function ReportPage() {
         <ApiSection origin={origin} yesterday={yesterday} />
       </Section>
       <footer className="flex flex-wrap justify-between gap-x-6 gap-y-2 border-t pt-6 font-mono text-xs text-muted-foreground">
-        <span>
-          Daily snapshots:{' '}
-          <a href={snapshotPath} className={LINK}>
-            {snapshotPath}
-          </a>
-        </span>
+
       </footer>
     </main>
   );
