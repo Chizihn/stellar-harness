@@ -27,6 +27,25 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
 
+  apps/scan-cli:
+    dependencies:
+      '@harness/chain':
+        specifier: workspace:*
+        version: link:../../packages/chain
+      '@harness/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
+      tsx:
+        specifier: 4.23.15
+        version: 4.23.15
+      worker:
+        specifier: workspace:*
+        version: link:../worker
+    devDependencies:
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@22.20.5)(@vitest/browser-playwright@5.0.3)(@vitest/ui@5.0.3)(vite@8.3.2(@types/node@22.20.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+
   apps/web:
     dependencies:
       '@ai-sdk/openai':

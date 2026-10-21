@@ -1,0 +1,20 @@
+{
+  "name": "scan-cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scan": "tsx src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@harness/chain": "workspace:*",
+    "@harness/storage": "workspace:*",
+    "tsx": "4.23.15",
+    "worker": "workspace:*"
+  },
+  "devDependencies": {
+    "vitest": "5.0.3"
+  }
+}
