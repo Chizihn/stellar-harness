@@ -17,5 +17,3 @@ pnpm dev
 ```
 
 Set `OPENAI_API_KEY` in `.env`. The app runs at http://localhost:3000 and the worker at http://localhost:8787/health. On first start the worker backfills the last 24 hours of mainnet.
-
-One-off scans: `pnpm scan txs --from <ledger> --to <ledger>`, `pnpm scan contracts`, `pnpm scan all`.

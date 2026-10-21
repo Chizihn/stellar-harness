@@ -4,11 +4,11 @@ Resume here: read this file and `DECISIONS.md` first.
 
 ## Status
 
-| Milestone               | State                                                                                                                            |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| M10 to M13 demo         | Done. One testnet organisation, eight agent tools, watched panel, chat with four chips and action cards, seeded fixes.           |
-| M16 live report and API | Done locally. Chain package, worker, scan CLI, six `/api/v1` routes, live `/report`, home page with how it works and live proof. |
-| Production              | Not yet. Worker on Railway, `DATABASE_URL` and `OPENAI_API_KEY` on Vercel, migrations on the production database.                |
+| Milestone               | State                                                                                                                  |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| M10 to M13 demo         | Done. One testnet organisation, eight agent tools, watched panel, chat with four chips and action cards, seeded fixes. |
+| M16 live report and API | Done locally. Chain package, worker, six `/api/v1` routes, live `/report`, home page with how it works and live proof. |
+| Production              | Not yet. Worker on Railway, `DATABASE_URL` and `OPENAI_API_KEY` on Vercel, migrations on the production database.      |
 
 `pnpm build`, `pnpm lint`, `pnpm test`, `pnpm format:check`, the Storybook tests, `pnpm knip` and `pnpm depcheck` pass.
 
@@ -50,7 +50,6 @@ packages/stellar-tools  the testnet reads and simulations the agent uses
 packages/agent          the eight AI SDK tools, the system prompt and the org brief
 packages/schema         Org, Action, Result, AppError, defineEnv
 apps/worker             Hono worker: transactions loop, hourly contracts, daily snapshot, /health
-apps/scan-cli           pnpm scan txs --from --to, pnpm scan contracts, pnpm scan all
 apps/web                home page with chat, /report, /api/chat, /api/v1/*
 ```
 

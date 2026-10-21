@@ -11,8 +11,8 @@ Every call made without explicit direction is tagged `@decision` so it can be re
 
 ## Layout
 
-- `@decision` `packages/chain` holds the one implementation of the decoder, the classifier, the RPC client, ledger tallies and contract checks. The worker, the scan CLI and the API all use it. Its README holds the method.
-- `@decision` `apps/worker` is a small Hono app that writes the live tables; `apps/scan-cli` reuses the worker's run functions (`worker/run`), so a manual scan and the worker can never count differently. `scan txs --from --to` writes the cursor `scan`, never `txs`, so a manual range cannot move the worker's cursor.
+- `@decision` `packages/chain` holds the one implementation of the decoder, the classifier, the RPC client, ledger tallies and contract checks. The worker and the API both use it. Its README holds the method.
+- `@decision` `apps/worker` is a small Hono app that writes the live tables. There is no separate scan CLI: the worker's backfill is the only way data is written, so a rescan is a worker restart with an empty or out-of-retention cursor.
 - `@decision` The old scanner, its censuses, the rent sample, the CSV exports and the publish script were deleted. The report is now live, not a published snapshot.
 
 ## Live data
