@@ -7,7 +7,7 @@ export default defineRailway(() => {
     start: 'pnpm --filter worker start',
     healthcheck: '/health',
     healthcheckTimeout: 300,
-    replicas: { 'europe-west4-drams3a': 1 },
+    replicas: { 'us-east4-eqdc4a': 1 },
   });
 
   return project('stellar-harness', {
