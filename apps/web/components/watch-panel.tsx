@@ -85,7 +85,7 @@ const TRIGGER_CLASS = 'py-2 text-left text-sm font-medium hover:no-underline';
 
 export function WatchPanel({ watch, org }: WatchPanelProps) {
   return (
-    <Sidebar className="md:absolute md:h-full">
+    <Sidebar>
       <SidebarHeader className="border-b px-4 py-3 text-foreground">
         <NewChatButton />
       </SidebarHeader>
