@@ -17,6 +17,7 @@
     "@ai-sdk/openai": "4.0.83",
     "@ai-sdk/react": "^4.0.130",
     "@harness/agent": "workspace:*",
+    "@harness/chain": "workspace:*",
     "@harness/schema": "workspace:*",
     "@harness/stellar-tools": "workspace:*",
     "@harness/storage": "workspace:*",

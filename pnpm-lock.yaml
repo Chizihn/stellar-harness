@@ -51,6 +51,9 @@ importers:
       '@harness/agent':
         specifier: workspace:*
         version: link:../../packages/agent
+      '@harness/chain':
+        specifier: workspace:*
+        version: link:../../packages/chain
       '@harness/schema':
         specifier: workspace:*
         version: link:../../packages/schema
