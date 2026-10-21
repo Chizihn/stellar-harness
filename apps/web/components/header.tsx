@@ -1,6 +1,8 @@
+import type { Network } from '@harness/schema';
 import { GithubLogoIcon } from '@phosphor-icons/react/ssr';
 import Link from 'next/link';
 import { Hint } from '@/components/hint';
+import { HowItWorksSheet } from '@/components/how-it-works-sheet';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -10,7 +12,7 @@ import { REPO_URL } from '@/lib/links';
 export const WALLET_SOON =
   "Coming soon. Connect your company's Stellar wallet and the harness watches it for you.";
 
-export function Header() {
+export function Header({ network }: { network: Network }) {
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
       <SidebarTrigger />
@@ -19,9 +21,7 @@ export function Header() {
         <Button asChild variant="link" size="sm" className="px-0">
           <Link href="/report">Report</Link>
         </Button>
-        <Button asChild variant="link" size="sm" className="px-0">
-          <Link href="/about">How it works</Link>
-        </Button>
+        <HowItWorksSheet network={network} />
         <Hint hint={WALLET_SOON} side="bottom">
           <span className="hidden sm:inline-flex">
             <Button variant="outline" size="sm" disabled>

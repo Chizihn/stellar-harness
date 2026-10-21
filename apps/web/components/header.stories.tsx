@@ -7,6 +7,7 @@ import { SidebarProvider } from './ui/sidebar';
 const meta: Meta<typeof Header> = {
   component: Header,
   title: 'components/Header',
+  args: { network: 'testnet' },
   decorators: [
     (Story) => (
       <ConversationsProvider>
@@ -25,10 +26,8 @@ export const Default: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole('link', { name: 'Report' })).toHaveAttribute('href', '/report');
-    await expect(canvas.getByRole('link', { name: 'How it works' })).toHaveAttribute(
-      'href',
-      '/about',
-    );
+    await userEvent.click(canvas.getByRole('button', { name: 'How it works' }));
+    await expect(await within(document.body).findByText('Prepare the fix')).toBeVisible();
     await expect(canvas.queryByText('Policy')).not.toBeInTheDocument();
   },
 };
