@@ -1,0 +1,40 @@
+name: worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/worker/**
+      - packages/chain/**
+      - packages/storage/**
+      - packages/schema/**
+      - pnpm-lock.yaml
+      - .railway/**
+      - package.json
+      - .github/workflows/worker.yml
+  workflow_dispatch:
+
+concurrency:
+  group: worker-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter worker --filter @harness/chain --filter @harness/storage --filter @harness/schema build
+      - run: pnpm --filter worker --filter @harness/chain --filter @harness/storage --filter @harness/schema test
+      - run: npm install -g @railway/cli@5
+      - run: railway config apply --yes
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      - run: railway up --ci --service worker
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
