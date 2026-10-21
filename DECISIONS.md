@@ -1,118 +1,47 @@
 # Decisions
 
-Every call made without explicit direction is tagged `@decision` so it can be reviewed in one pass.
+Every call made without explicit direction is tagged `@decision` so it can be reviewed in one pass. This file describes the code as it is now.
 
 ## Workspace
 
 - `@decision` Internal packages export TypeScript source (`exports: ./src/index.ts`) and are not compiled to `dist`. `tsx`, `vitest` and Next.js (`transpilePackages`) all consume source directly, so `build` in a package is a type check.
 - `@decision` Biome formats with single quotes, trailing commas and a 100 column width to match house style.
+- `@decision` Commits are conventional and atomic, scoped by milestone and part (for example `feat(M16.e): ...`).
+- `@decision` `knip` and `depcheck` run over every workspace. `knip` skips the vendored `components/ui` and `components/ai-elements`, `lib/api-handler.ts` and `lib/mixin.ts`, whose registries and options are part of the shared pattern, and `.git/**` for the local hooks. `apps/web/.depcheckrc` lists the CSS, build-tool and Storybook addon dependencies depcheck cannot see.
+
+## Layout
+
+- `@decision` `packages/chain` holds the one implementation of the decoder, the classifier, the RPC client, ledger tallies and contract checks. The worker, the scan CLI and the API all use it. Its README holds the method.
+- `@decision` `apps/worker` is a small Hono app that writes the live tables; `apps/scan-cli` reuses the worker's run functions (`worker/run`), so a manual scan and the worker can never count differently. `scan txs --from --to` writes the cursor `scan`, never `txs`, so a manual range cannot move the worker's cursor.
+- `@decision` The old scanner, its censuses, the anchor probe, the rent sample, the CSV exports and the publish script were deleted. The report is now live, not a published snapshot.
+
+## Live data
+
+- `@decision` The worker host is Railway (one replica, health check `/health`), the database is Postgres (local Docker on port 55432 for development, the production URL later), and the RPC is `https://mainnet.sorobanrpc.com`, overridable with `RPC_URL`. Its retention is about 121,000 ledgers (about 7 days).
+- `@decision` Mainnet is read-only. Nothing is signed or sent; fix costs come from `simulateTransaction` with `SIMULATION_SOURCE`, a public account that holds no key here.
+- `@decision` The report covers a rolling 24 hours. On first start, or when the cursor falls out of retention, the worker backfills the last 24 hours (ledger close time measured live) and then polls every `POLL_SECONDS`. The backfill reads 20-ledger windows 8 at a time and writes them in ledger order; serial reads managed about 0.5 ledgers per second, parallel windows about 1.6, and the RPC is the limit beyond that. Rereading a ledger is idempotent (delete and insert). Ledgers older than 48 hours are pruned hourly.
+- `@decision` The active contract set (100+ lifetime invocations on stellar.expert, or SCF-funded on stellarlight) is rebuilt at most daily into `active_contracts`, because stellar.expert cannot sort by invocations and the full listing is slow. Expiry checks and fix costs run hourly against that set. A run that checks zero contracts keeps the stored data; a failed price fetch stores USD as null.
+- `@decision` A fix cost is the price of extending to the longest TTL the network allows, read from the ledger (`stateArchival.maxEntryTtl` minus 1, now 3,110,399 ledgers, about 180 days), never a fixed 12 months. The report shows the day count it priced.
+- `@decision` The daily snapshot is the UTC date of (now - 5 min - 1 day), written once at 00:05 UTC and only after a full catch-up, so a half-done backfill never becomes a snapshot.
+- `@decision` `/health` always returns 200 with `cursorLedger`, `latestLedger`, `lagLedgers` and `lastWriteAt`.
+
+## Public API and report
+
+- `@decision` Six read-only routes under `/api/v1` (`summary`, `codes`, `failures/recent`, `accounts/top`, `contracts?status=`, `snapshots/[date]`) run through `apiHandler` with open CORS, `public, max-age=15` and 120 requests per minute per IP (in memory per instance). Every payload carries `generatedAt`, `startLedger` and `endLedger`, plus a `plain` explanation for each code.
+- `@decision` `/report` is server rendered from the database (`force-dynamic`) so it works without JavaScript; the client polls `/summary` and `/failures/recent` every 5 seconds with `cache: 'no-store'`, because the browser would otherwise serve the 15 second cached response. The live line reads `delayed` when the newest ledger is more than 120 seconds old.
+- `@decision` Codes the harness does not act on fold into one `other` row. Share is the count over all failed transactions.
+- `@decision` The live feed uses `ui/table` so new rows can fade in; the other tables use `DataTable`.
 
 ## Product: one organisation, one screen
 
-- `@decision` The product is an operator agent for one organisation. The network-wide findings explorer, about page, live strip, chat history, plans, handoffs, Vercel config and the testnet scan view were deleted, along with every feature component that served them; the scanner keeps producing the public report on its own.
-- `@decision` The scanner owns everything it uses (network core with caching and rate limits, decoders, anchor probe, contract helpers, its schemas and file storage) under `packages/scanner/src`, and imports no other workspace package. `@harness/stellar-tools` was rewritten as six small tools on `@stellar/stellar-sdk` because the product needs single live reads, not the scanner's rate-limited batch machinery. The two copies of the anchor probe differ on purpose: the scanner runs the full nine-stage probe and anchor tests, the product checks toml, signing key, `/info` and SEP-10.
-- `@decision` The demo organisation is testnet only: two friendbot-funded accounts (treasury holds 100 testnet USDC bought on the testnet DEX, distribution has no trustline), and the `increment` example deployed twice as Escrow and Registry on 2026-10-02 and never extended. No third, archived contract was deployed: testnet's minimum persistent TTL is about seven days, so Escrow and Registry show real days left and archive on their own if nobody extends them. Secret keys stay in the local Stellar CLI keystore and never enter the repo.
-- `@decision` `withinPolicy` is true only when the operation is allowed and a cost is known and at or below `approvalAboveXlm`; an unknown cost needs approval. `dailySpendXlm` is shown in the policy tooltip but not enforced, since nothing executes.
-- `@decision` Agent tools take organisation labels or roles ("Escrow", "treasury") as well as ids and reject subjects outside the organisation. `gpt-4.1` mangled 56-character ids when copying them between tool calls; labels removed that failure. A bare asset code in the payment preflight resolves to the issuer the sender holds.
-- `@decision` The system prompt is the specified text plus four operational lines (use labels, what needs attention for contracts, how a missing trustline is fixed, record before describing and report policy as returned); without them `gpt-4.1` described fixes it never recorded.
-- `@decision` The watched panel is a server component reading through cached tool calls (accounts and contracts 30 s, anchor 10 minutes) instead of an `/api/org` route; the chat calls `router.refresh()` when a reply finishes so new actions appear in the panel.
-- `@decision` Chat history is kept in the browser's local storage (`harness:conversations:v2`, newest 50), not in Postgres, as the user asked early on that chats never go to the database. The sidebar lists saved chats above what the harness watches; a chat opens at `/?c=<id>`, and New chat always starts a fresh id.
-- `@decision` Proposed actions live in memory for the life of the server process and are shared by every visitor, which is enough for a demo; `MemoryStorage` in `packages/storage` is the one class to swap for a database adapter. A new proposal for the same subject and operation replaces the earlier one.
-- `@decision` Pilot requests are stored in Postgres (`pilot_requests`) with raw SQL through the `postgres` driver, so the app deploys without a writable disk. Migrations are SQL strings in `packages/storage/src/migrations.ts`, applied once per process on first use and tracked in `app_migrations` (named apart from the old scanner `schema_migrations` table still present in existing databases). `DATABASE_URL` is required only by the pilot route; `docker compose up -d postgres` gives a local database.
-- `@decision` The design keeps the existing tokens (Outfit, Instrument Serif, the green primary) with the light and dark themes and the theme toggle, at the user's request, instead of the patch's light-only black on white. The engineering kit stays: the core shadcn primitives (select, input, button, checkbox, dialog, sheet, drawer, tooltip, popover and the rest), the RHF and Zod form fields, the responsive sheet, the AI Elements the chat uses, Storybook with a story for every component, `apiHandler` for every route, the validated env loader, the logger and `fetchJson`. Only feature components that nothing on the screen uses were removed.
-- `@decision` `Result`, `AppError` and `defineEnv` live in `@harness/schema` next to `Org` and `Action` because the web routes, forms and env loader share them; the patch asked for only `Org` and `Action` there, but these are contracts, not feature schemas.
-- `@decision` `gpt-4.1` does not stream reasoning, so there is no reasoning component. `OPENAI_MODEL` overrides it; an unsupported model surfaces as the OpenAI error in the chat.
-- `@decision` Milestone commits use the `M9` to `M12` scope in conventional commits (for example `refactor(M9): ...`) so each stays atomic, instead of one `M<n>: summary` commit per milestone.
-- `@decision` `knip` and `depcheck` run over the product packages. `knip` skips the scanner workspaces (exempt by the patch), the vendored `components/ui` and `components/ai-elements`, and `lib/api-handler.ts`, whose registries and options handler are part of the shared pattern. `apps/web/.depcheckrc` lists the CSS, build-tool and Storybook addon dependencies depcheck cannot see.
-
-## Demo polish (M13)
-
-- `@decision` The sidebar is seeded before anyone types: `apps/web/lib/seed-actions.ts` runs the same reads the agent uses (contract TTLs, simulations, the treasury to distribution preflight) and records actions through the agent's own `proposeAction`, so seeded and agent actions are identical and de-duplicate. It runs from the server read that renders the sidebar, at most once per 10 minutes per process; each read is isolated, so a failure only means fewer actions. There is no `/api/org` route to run it from.
-- `@decision` A single TTL extension is capped at 3,110,399 ledgers (about 180 days): testnet and mainnet reject anything at or above the 3,110,400 maximum as `Malformed`, while `simulateTransaction` does not enforce it. The tools, agent input, seed and suggestion 3 ("six months") use the cap, so no proposal promises an extension the network would refuse. Registry therefore shows about 180 days, not the 300 the patch asked for.
-- `@decision` Registry was extended to that maximum on 2026-10-03 with the local deployer key: instance in transaction `e52fb7d89497d7b1d9a293ce659ac2b3686fc6db70c628a47f63ce958480b0ea` (0.13 XLM) and the shared `increment` wasm code in `aa5b57ac06ab2270b06bf19837e453b5e9b6f3c3477e2747ef8ad474b5e101ef` (11.35 XLM). Escrow's instance was left alone and archives around 2026-10-09, after which the seed and suggestion 1 propose a restore.
-- `@decision` The anchor is `clpx.finance`, chosen from the scanner's `anchors_failing.csv` and re-probed live: toml, signing key and `/info` pass, and SEP-10 fails because the challenge's home domain does not match. That gives a mix of passing and failing stages. `anchor.tender.cash` is the fallback (same shape, SEP-10 not signed by the server), set through `ANCHOR_DOMAIN` without a code change. `anchorDomainNote` says the probe is read-only and the anchor is not operated by the demo org, and the agent is told not to propose fixes for it.
-- `@decision` SEP-10 challenges are verified against the `NETWORK_PASSPHRASE` the anchor declares, falling back to the organisation's network, so a testnet organisation probing a mainnet anchor does not fail the check for the wrong reason.
-- `@decision` The composer is disabled while the agent works, which also disables the stop button. The product tool never runs `@stellar/anchor-tests`, so the anchor suggestion stays fast and does not promise a full test run.
-- `@decision` The patch asked for strictly monochrome themes; the existing tokens with the green primary stay, as the user asked earlier.
-
-## Scanner
-
-### Report and CLI
-
-- `@decision` The report renderer is a pure function of `Summary`, export previews, methodology entries and run stats, so `REPORT.md` is reproducible from `data/` without network access.
-- `@decision` `--window` accepts `s`, `m`, `h` and `d` units; the failures census clamps it to RPC retention.
-
-### Network core
-
-- `@decision` Only 2xx, 404 and 410 responses are cached. 429, 5xx, other 4xx and network failures never are. JSON-RPC errors and `getTransaction` NOT_FOUND are not cached either.
-- `@decision` `getHealth`, `getLatestLedger` and Horizon's latest ledger always bypass the cache; partial pages at the chain tip are not cached. Closed ledgers are cached in full.
-- `@decision` RPC requests use a constant `id: 1` so identical calls share a cache key; `resultMetaXdr`, diagnostic events and events are stripped from RPC transaction bodies before caching.
-- `@decision` TLS and DNS failures are not retried and are not gaps; a gap is a retryable failure (429, 5xx, timeout, reset) still failing after 6 attempts. Backoff base 500 ms, cap 30 s, `Retry-After` honored up to 120 s.
-- `@decision` Redirects are followed manually for every request, capped at 3. A fixed, honest user agent is sent; nothing is rotated.
-- `@decision` The global concurrency cap of 32 is a constant; unknown hosts (anchor domains) get `CONCURRENCY_ANCHOR`.
-- `@decision` `findingId` is sha256 of `type:subject:snapshotLedger`. `snapshotTime` is the latest Horizon ledger's `closed_at`.
-- `@decision` Result codes follow Horizon's names, including its misspelling `op_not_aut_maintain_liabilities`; `txNoAccount` maps to `tx_no_source_account`.
-- `@decision` Tx-level failure codes (`tx_bad_seq`, `tx_insufficient_fee`, `tx_too_late`, `tx_bad_auth`, `tx_insufficient_balance`) did not appear in 300,000 recent mainnet transactions (71,776 failed): the network rejects them at submission, so they never reach ledger history. The five TX_* fingerprints stay implemented but are expected to be empty from ledger data; their decoder tests use SDK-built XDR named `synthetic`. Observing them needs submission-side telemetry, which is what the harness would capture in the product.
-- `@decision` stellar.expert asset sorts that work: `rating` (default), `trustlines`, `trades`, `payments`, `volume7d`. stellarlight `type=on-off-ramp` currently returns 0 partners and `type=anchor` returns 24.
-
-### Census 1 and 4: contracts and rent
-
-- `@decision` RPC returns hot-archived persistent entries as present with `liveUntilLedgerSeq: 0`; these count as archived. In the first 200 stellar.expert contracts, 85 instances were archived this way and none were missing outright.
-- `@decision` Expiry buckets do not overlap: 30d is at most 30 days, 90d is over 30 and at most 90 days.
-- `@decision` Idle activity is `invocations + subinvocation` because many contracts are only called by other contracts.
-- `@decision` CONTRACT_CODE_ARCHIVED is one finding per wasm hash, tagged with the SCF tags of the whole family. Stellar asset contracts have no wasm family and appear as `stellar_asset` in `archivedByFamily`.
-- `@decision` A missing `validation` field on stellar.expert counts as unverified.
-- `@decision` The SCF round is the latest of `scfAwardedRounds`, or null when no numbered round exists. Repo contracts come from `codeVerified.mainnetContractId`.
-- `@decision` Rent simulations use Circle's USDC issuer (`GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`) as the source account: a long-lived public account nobody here controls; simulation submits nothing.
-- `@decision` `xlm12m` is the simulated resource fee alone; `estimatedXlm` adds the 100 stroop base fee. Rent totals sum simulated contracts with no population weighting. XLM/USD comes from CoinGecko once per run.
-- `@decision` The rent sample seed is `20261002`; stratification is by invocation decile rank.
-
-### Census 2: failed transactions
-
-- `@decision` RPC `getTransactions` is the only source. The range is split into 100-ledger chunks, each paged with its own cursor until a transaction passes the chunk end. The window stays 720 ledgers inside RPC retention because the oldest ledgers age out during a long scan.
-- `@decision` `--limit N` limits the failures census to the newest N ledgers.
-- `@decision` The checkpoint is the highest ledger completed with no gap before it; chunks finished after a gap are recorded by id so a resume never duplicates rows.
-- `@decision` `byCode` and cluster counts count each code once per transaction. A fee bump counts against the inner transaction's source and inner codes.
-- `@decision` `sameLedgerCollisions` counts matching failures in ledgers where the account had two or more failures of any code.
-- `@decision` `multisig` means med_threshold above 1 or more than one signer with weight above 0. `channel_pattern` uses only first operations of type `create_account` that carry a funder; Horizon's oldest retained operation is not always account creation, so this tag under-counts.
-- `@decision` Transactions that fail to decode are skipped, still counted in `ledger_totals`, and listed as decode gaps.
-- `@decision` `failed_tx` rows carry an optional `payment {destination, asset, amount}`. `reserveShortfallXlm` is the XLM needed for one more subentry and is attached to `OP_LOW_RESERVE_CLUSTER` only when above zero.
-- `@decision` `getTransaction` reads RPC first and falls back to Horizon `/transactions/{hash}`.
-- `@decision` Measured: one `getTransactions` call (limit 200) covers about 1.08 ledgers. A 1-day window is about 17,000 calls (about 45 to 50 minutes at the ~6 calls/s public RPC sustains at concurrency 8); the brief's 10 minute target for 1 day is not reachable on the public endpoint without a dedicated RPC.
-
-### Census 3: anchors
-
-- `@decision` SCF rounds 41 to 45 come from the Medium RSS feed (`/feed/stellar-community`). Only projects whose recap mentions anchors, a SEP number or on/off-ramps are kept, resolved through stellarlight project search; unresolved names are listed. If Medium fails, stellarlight `scfAwarded=1` filtered by round and anchor type is the fallback.
-- `@decision` stellarlight `type=Anchor` projects are an extra domain source, merged into partners through `anchorProfile.slug`. stellar.expert assets are sorted by `trustlines` and use the record's `domain`, with Horizon `home_domain` as fallback.
-- `@decision` A partner's toml host beats its website host; `www.` is dropped; social and code hosts are ignored. Hosts that are IPs, carry a port or are single-label are rejected, which also limits SSRF.
-- `@decision` Only testnet or futurenet passphrases tag `testnet_toml` and skip network probes; any other non-mainnet value is tagged `nonstandard_passphrase` and probing continues.
-- `@decision` A SEP-10 400 that requires `client_domain` counts as a pass with a note. SEP-10 and toml checks compare against the probed domain exactly, like the reference anchor tests.
-- `@decision` Anchor findings use the domain as subject; account mismatches and issuer flags are grouped into one finding per domain with the accounts listed in evidence.
-- `@decision` The funnel is cumulative. `perSep` keys are `sep1`, `sep6_24`, `sep10`, `sep31`, `sep38`, plus `tests:sepN` from anchor tests.
-- `@decision` Transitive endpoint hosts are probed one level deep as their own domains.
-- `@decision` `@stellar/anchor-tests` runs only an allowlist of tests that read or perform the SEP-10 handshake. Excluded because they write to third-party production servers: SEP-12 `PUT`/`DELETE /customer` and the `GET /customer` tests that depend on them, SEP-24 `/deposit`, `/withdraw` and the `/transaction(s)` tests that depend on them, SEP-38 `POST /quote` and its follow-up, SEP-10 account signer tests (friendbot and submission), and all of SEP-31 (it needs a configured sending anchor secret). Each saved report lists the exclusions with reasons; a test checks the allowlist against the installed library.
-- `@decision` The SEP-10 challenge URL carries a fresh random account, so it never hits the cache; a warm rerun still makes those calls. The anchor-tests library uses its own HTTP client, so its runs are limited per domain instead of through the shared semaphore.
-
-### Census 5: GitHub
-
-- `@decision` GitHub issue search does not accept `topic:` qualifiers (those only apply to repository search), so the sweep runs each query globally and again scoped with `org:` and `repo:` qualifiers, packed into queries under GitHub's 256 character limit.
-- `@decision` GitHub search returns at most 1,000 results per query. Truncated queries are recorded in the run stats and the report instead of being split by date.
-- `@decision` An issue matched by several queries keeps the category of the first query in table order (TTL, then tx failures, then anchors).
-- `@decision` GitHub findings use the issue URL as `subject` and `info` severity; the brief gives no severity for them.
-
-### Result code names
-
-- `@decision` Horizon's own mapping (`internal/codes/main.go` in stellar/stellar-horizon, pinned commit recorded in `packages/scanner/src/decode/horizon-codes.json`) is vendored and is the decoder's primary table; name derivation from XDR is only a fallback. A test checks all 208 mappings, and another requires an explanation for every code Horizon can emit. This fixed 17 divergences, including Soroban codes Horizon emits without the `op_` prefix (`function_trapped`, `resource_limit_exceeded`, `entry_archived`, `insufficient_refundable_fee`), `buy_not_authorized`, `sell_not_authorized`, `buy_no_issuer`, and `op_no_trust` for allow-trust and set-trustline-flags without a trustline.
-
-### Scan runtime
-
-- `@decision` A snapshot is taken once and reused by every later command until `--new-snapshot` is passed. A new snapshot clears `findings.jsonl`, `data/derived` and `data/state` so findings never mix snapshots; the disk cache is kept.
-- `@decision` Each census command writes its CSV exports, a 20-row preview and a run record (wall time, requests, network calls, cache hits, gaps, methodology) under `data/derived`; `harness-scan report` builds `summary.json` and `REPORT.md` from those files alone.
-- `@decision` DNS failures are retried for the configured infrastructure hosts (Horizon, RPC, stellar.expert, stellarlight) and fail fast for anchor domains. A local network outage during the first full run turned every request into `ENOTFOUND`; without this, a transient outage reads as hundreds of unreachable anchors.
-- `@decision` The rent census reads contract rows from the contracts census output, so `rent` requires `contracts` to have run on the same snapshot; `all` orders them that way.
-
-### Scope
-
-- `@decision` The scanner writes files only (`data/`); its Postgres mirror, the import scripts and testnet scans were removed because their only consumer was the deleted web views. It still reads the repository root `.env`; `packages/scanner/.env.example` lists its variables.
-- `@decision` The copied network core keeps its general network profiles, but every scan runs against mainnet.
-- `@decision` The known-anchor seed list and the meaningful-count backfill were removed; the contracts census computes the meaningful counts itself, so a summary written before that change shows 0 until the contracts census reruns.
+- `@decision` The home page explains the product before the chat: the value line, the four how it works steps, the demo scope line, and a live mainnet line from the database linking to `/report`. The same steps open in a sheet from the header, so there is no separate about page.
+- `@decision` The header shows Report, How it works, a disabled Connect wallet button with a coming soon tooltip (organisation wallets through Stellar Wallets Kit are the funded roadmap), GitHub and the theme toggle.
+- `@decision` The demo organisation is testnet only: two friendbot-funded accounts (treasury holds 100 testnet USDC, distribution has no trustline), and the `increment` example deployed twice as Escrow and Registry. Escrow was left to archive; Registry was extended to the network maximum on 2026-10-03. Testnet secret keys stay in the local Stellar CLI keystore and never enter the repo.
+- `@decision` `withinPolicy` is true only when the operation is allowed and a cost is known and at or below `approvalAboveXlm`; an unknown cost needs approval. `dailySpendXlm` is shown but not enforced, since nothing executes.
+- `@decision` Agent tools take organisation labels or roles ("Escrow", "treasury") as well as ids and reject subjects outside the organisation, because `gpt-4.1` mangled 56-character ids when copying them between calls.
+- `@decision` `getMainnetReport` returns the summary and the top 10 codes, so network questions take one tool call. The chat stops after 5 steps, and tool calls render collapsed as one grey line under the answer.
+- `@decision` The sidebar is seeded before anyone types: `lib/seed-actions.ts` runs the agent's own reads and records actions through `proposeAction`, at most once per 10 minutes per process. Proposed actions live in memory for the life of the server process.
+- `@decision` Chat history is kept in the browser's local storage (`harness:conversations:v2`, newest 50), never in Postgres.
+- `@decision` Migrations are SQL strings in `packages/storage/src/migrations.ts`, tracked in `app_migrations`, applied by the worker on start and by the web app on first use. Raw SQL through the `postgres` driver, no ORM.
+- `@decision` The design keeps the existing tokens (Outfit, Instrument Serif, the green primary) with light and dark themes and the toggle. The engineering kit stays: the shadcn primitives, the RHF and Zod form fields, the responsive sheet, `DataTable`, the AI Elements the chat uses, Storybook with a story for every component, `apiHandler`, the validated env loader, the logger, `fetchJson`, `Result` and `memo`.
+- `@decision` `gpt-4.1` is the default model; `OPENAI_MODEL` overrides it.
