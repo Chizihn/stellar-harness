@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@harness/storage':
-        specifier: workspace:*
-        version: link:packages/storage
     devDependencies:
       '@biomejs/biome':
         specifier: 2.5.15
@@ -27,9 +23,6 @@ importers:
       prettier:
         specifier: ^3.9.9
         version: 3.9.9
-      tsx:
-        specifier: 4.23.15
-        version: 4.23.15
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -118,9 +111,6 @@ importers:
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      papaparse:
-        specifier: ^5.7.0
-        version: 5.7.0
       pino:
         specifier: ^10.3.1
         version: 10.4.0
@@ -182,9 +172,6 @@ importers:
       '@types/node':
         specifier: ^22.15.0
         version: 22.20.5
-      '@types/papaparse':
-        specifier: ^5.5.2
-        version: 5.5.2
       '@types/react':
         specifier: ^19
         version: 19.3.0
@@ -2728,9 +2715,6 @@ packages:
   '@types/node@22.20.5':
     resolution: {integrity: sha512-U2+DNr+wSjpsTS/wZGYHq7GcwfuSmKiKvoPvK22zwTlRhU91yOniN4qRR5KhIjvif7ysw/dz/hKmfDH0Ris4aA==}
 
-  '@types/papaparse@5.5.2':
-    resolution: {integrity: sha512-gFnFp/JMzLHCwRf7tQHrNnfhN4eYBVYYI897CGX4MY1tzY9l2aLkVyx2IlKZ/SAqDbB3I1AOZW5gTMGGsqWliA==}
-
   '@types/parse-json@4.0.2':
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
 
@@ -4440,9 +4424,6 @@ packages:
 
   package-manager-detector@1.8.0:
     resolution: {integrity: sha512-yQA4H19AmPEoMUeavPMDIe1higySl/gH/yaQrkT/s07Qp+7pp2hYz30N3z2l5BkjVkF9Ow6o0wjJamm2y7Sn0A==}
-
-  papaparse@5.7.0:
-    resolution: {integrity: sha512-qBGxg/7Q3Kl9Wfhrz2Z74UnvnHTXLNG6jmKJFeBvP2+y4lV7So+7SR62+Zd47JvdrCkX+nDcnr0ObPzek/+6RA==}
 
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
@@ -7553,10 +7534,6 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
-  '@types/papaparse@5.5.2':
-    dependencies:
-      '@types/node': 22.20.5
-
   '@types/parse-json@4.0.2': {}
 
   '@types/randombytes@2.0.3':
@@ -9632,8 +9609,6 @@ snapshots:
       '@oxc-resolver/binding-win32-x64-msvc': 11.24.2
 
   package-manager-detector@1.8.0: {}
-
-  papaparse@5.7.0: {}
 
   parent-module@1.0.1:
     dependencies:
